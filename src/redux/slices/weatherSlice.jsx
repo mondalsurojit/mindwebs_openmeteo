@@ -5,6 +5,7 @@ const DB_NAME = 'WeatherDataCache';
 const DB_VERSION = 1;
 const STORE_NAME = 'weatherBatches';
 const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
+const backendUrl = import.meta.env.BACKEND_URL;
 
 class IndexedDBCache {
   constructor() {
@@ -177,7 +178,7 @@ const fetchWeatherBatch = createAsyncThunk(
       // Fetch from API if not in cache
       console.log(`🌐 Fetching batch ${batchNumber} from API...`);
       const paddedBatchNumber = String(batchNumber).padStart(3, '0');
-      const response = await fetch(`http://localhost:8000/data/${paddedBatchNumber}`);
+      const response = await fetch(`${backendUrl}/data/${paddedBatchNumber}`);
 
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);

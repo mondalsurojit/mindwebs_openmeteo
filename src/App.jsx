@@ -4,13 +4,11 @@ import { useSelector, useDispatch } from 'react-redux';
 
 import CustomMap from './versions/CustomMap';
 import WeatherDataTable from './components/WeatherDataTable';
-import Charts from './components/Charts';
 import ControlPanel from './components/ControlPanel';
 
 import {
   fetchInitialWeatherData, fetchWeatherBatchFromWorker, loadCachedBatch, addFetchingBatch, removeFetchingBatch,
-  selectLoading, selectError, selectWeatherData, selectBatchInfo, selectCurrentTimeIndex,
-  selectTimeIndices, selectCacheStats, selectFetchingBatches
+  selectLoading, selectError, selectWeatherData, selectBatchInfo, selectCacheStats,
 } from './redux/slices/weatherSlice';
 
 import { setShowDataTable, selectIsPlaying } from './redux/slices/uiSlice';
@@ -21,15 +19,12 @@ function App() {
   const error = useSelector(selectError);
   const weatherData = useSelector(selectWeatherData);
   const batchInfo = useSelector(selectBatchInfo);
-  const currentTimeIndex = useSelector(selectCurrentTimeIndex);
-  const timeIndices = useSelector(selectTimeIndices);
-  const isPlaying = useSelector(selectIsPlaying);
   const cacheStats = useSelector(selectCacheStats);
-  const fetchingBatches = useSelector(selectFetchingBatches);
 
   const [viewMode, setViewMode] = useState('map'); // 'map', 'table'
   const [backgroundFetchStarted, setBackgroundFetchStarted] = useState(false);
   const [worker, setWorker] = useState(null);
+  const backendUrl = import.meta.env.BACKEND_URL;
 
   // Initialize Web Worker
   useEffect(() => {
@@ -42,7 +37,7 @@ function App() {
             console.log(\`🔄 Worker fetching batch \${batchNumber}...\`);
             
             const paddedBatchNumber = String(batchNumber).padStart(3, '0');
-            const response = await fetch(\`http://localhost:8000/data/\${paddedBatchNumber}\`);
+            const response = await fetch(\`${backendUrl}/data/\${paddedBatchNumber}\`);
             
             if (!response.ok) {
               throw new Error(\`HTTP error! status: \${response.status}\`);
@@ -231,7 +226,7 @@ function App() {
 
           <div className="space-y-2 text-sm text-gray-500 mb-6">
             <p>• Check your internet connection</p>
-            <p>• Verify the API server is running on localhost:8000</p>
+            <p>• Verify the API server is running on ${backendUrl}:8000</p>
             <p>• Ensure batch 001 data is available</p>
           </div>
 

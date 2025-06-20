@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import staticStationData from '../../data/zws2.json';
+const backendUrl = import.meta.env.BACKEND_URL;
 
 // Create city-to-station mapping and flattened station data
 const createStationMappings = (staticData) => {
@@ -36,7 +37,7 @@ export const fetchCityWeatherData = createAsyncThunk(
     'zomato/fetchCityWeatherData',
     async (city, { rejectWithValue }) => {
         try {
-            const response = await fetch(`http://127.0.0.1:8000/zws/?city=${encodeURIComponent(city)}`);
+            const response = await fetch(`${backendUrl}/zws/?city=${encodeURIComponent(city)}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
@@ -87,7 +88,7 @@ export const fetchWeatherForStation = createAsyncThunk(
         try {
             // Since your API returns all stations for a city, we'll fetch city data
             // and extract the specific station data
-            const response = await fetch(`http://127.0.0.1:8000/zws/?city=${encodeURIComponent(city)}`);
+            const response = await fetch(`${backendUrl}/zws/?city=${encodeURIComponent(city)}`);
 
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
