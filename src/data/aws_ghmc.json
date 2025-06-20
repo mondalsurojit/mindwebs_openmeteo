@@ -1,0 +1,905 @@
+[
+    {
+        "id": 10001,
+        "location": "Moulali",
+        "mandal": "Uppal",
+        "lat": 17.454636,
+        "lon": 78.55968
+    },
+    {
+        "id": 10002,
+        "location": "Sivaramapalle",
+        "mandal": "Rajendranagar",
+        "lat": 17.32777,
+        "lon": 78.424416
+    },
+    {
+        "id": 10006,
+        "location": "Jubileehills",
+        "mandal": "Shaikpet",
+        "lat": 17.429745,
+        "lon": 78.40413
+    },
+    {
+        "id": 10012,
+        "location": "Musheerabad (chilkalguda)",
+        "mandal": "Musheerabad",
+        "lat": 17.424212,
+        "lon": 78.50107
+    },
+    {
+        "id": 10013,
+        "location": "Bandlaguda",
+        "mandal": "Uppal",
+        "lat": 17.365685,
+        "lon": 78.572
+    },
+    {
+        "id": 10014,
+        "location": "Madhapur",
+        "mandal": "Serilingampally",
+        "lat": 17.4531,
+        "lon": 78.3747
+    },
+    {
+        "id": 10308,
+        "location": "Guchibowli",
+        "mandal": "Serilingampally",
+        "lat": 17.4704,
+        "lon": 78.3259
+    },
+    {
+        "id": 10534,
+        "location": "Kandikal Gate",
+        "mandal": "Bandlaguda",
+        "lat": 17.331907,
+        "lon": 78.47795
+    },
+    {
+        "id": 10535,
+        "location": "Maitrivanam",
+        "mandal": "Ameerpet",
+        "lat": 17.436794,
+        "lon": 78.44608
+    },
+    {
+        "id": 10544,
+        "location": "Hayathnagar",
+        "mandal": "Hayathnagar",
+        "lat": 17.334883,
+        "lon": 78.61245
+    },
+    {
+        "id": 10924,
+        "location": "Asmanghad",
+        "mandal": "Saidabad",
+        "lat": 17.363827,
+        "lon": 78.51595
+    },
+    {
+        "id": 10932,
+        "location": "Tirumalagiri",
+        "mandal": "Tirumalagiri",
+        "lat": 17.47133,
+        "lon": 78.50146
+    },
+    {
+        "id": 10935,
+        "location": "BHEL Factory",
+        "mandal": "Ramachandrapuram",
+        "lat": 17.494,
+        "lon": 78.28343
+    },
+    {
+        "id": 10976,
+        "location": "Malkajgiri",
+        "mandal": "Malkajgiri",
+        "lat": 17.455627,
+        "lon": 78.529465
+    },
+    {
+        "id": 10995,
+        "location": "Balanagar",
+        "mandal": "Kukatpally",
+        "lat": 17.470497,
+        "lon": 78.4334
+    },
+    {
+        "id": 10998,
+        "location": "Quthbullapur",
+        "mandal": "Quthbullapur",
+        "lat": 17.500448,
+        "lon": 78.45005
+    },
+    {
+        "id": 11189,
+        "location": "Shaikpet",
+        "mandal": "Shaikpet",
+        "lat": 17.397783,
+        "lon": 78.40016
+    },
+    {
+        "id": 11191,
+        "location": "West Maredpally",
+        "mandal": "Marredpally",
+        "lat": 17.454077,
+        "lon": 78.51219
+    },
+    {
+        "id": 11192,
+        "location": "Mondamarket",
+        "mandal": "Secunderabad",
+        "lat": 17.433496,
+        "lon": 78.49795
+    },
+    {
+        "id": 11194,
+        "location": "Narayanaguda",
+        "mandal": "Himayatnagar",
+        "lat": 17.396914,
+        "lon": 78.48905
+    },
+    {
+        "id": 11195,
+        "location": "Srinagarcolony",
+        "mandal": "Khairatabad",
+        "lat": 17.430462,
+        "lon": 78.44195
+    },
+    {
+        "id": 11196,
+        "location": "Asifnagar",
+        "mandal": "Asifnagar",
+        "lat": 17.395454,
+        "lon": 78.428925
+    },
+    {
+        "id": 11197,
+        "location": "Bathukamma kunta ESS",
+        "mandal": "Amberpet",
+        "lat": 17.395014,
+        "lon": 78.511215
+    },
+    {
+        "id": 11198,
+        "location": "Chandulal Baradari (Opp. Zoo Park)",
+        "mandal": "Bahadurpura",
+        "lat": 17.345076,
+        "lon": 78.44931
+    },
+    {
+        "id": 11199,
+        "location": "Golkonda",
+        "mandal": "Golkonda",
+        "lat": 17.374846,
+        "lon": 78.39555
+    },
+    {
+        "id": 11200,
+        "location": "Nampally",
+        "mandal": "Nampally",
+        "lat": 17.385736,
+        "lon": 78.46863
+    },
+    {
+        "id": 11201,
+        "location": "Qutballapur (GHMC Office)",
+        "mandal": "Qutballapur",
+        "lat": 17.499475,
+        "lon": 78.453545
+    },
+    {
+        "id": 11203,
+        "location": "Kapra (GHMC Office)",
+        "mandal": "Kapra",
+        "lat": 17.469929,
+        "lon": 78.56661
+    },
+    {
+        "id": 11204,
+        "location": "L.B.Nagar (GHMC Office)",
+        "mandal": "Saroornagar",
+        "lat": 17.367014,
+        "lon": 78.53533
+    },
+    {
+        "id": 11206,
+        "location": "Sardarmahal (zonal commissioner office)",
+        "mandal": "Charminar",
+        "lat": 17.360765,
+        "lon": 78.47597
+    },
+    {
+        "id": 11513,
+        "location": "Rajendranagar (ARS)",
+        "mandal": "Rajendranagar",
+        "lat": 17.3244,
+        "lon": 78.3993
+    },
+    {
+        "id": 11780,
+        "location": "Shapur Nagar",
+        "mandal": "Qutballapur",
+        "lat": 17.525246,
+        "lon": 78.44452
+    },
+    {
+        "id": 11812,
+        "location": "Jeedimetla",
+        "mandal": "Quthbullapur",
+        "lat": 17.522223,
+        "lon": 78.44139
+    },
+    {
+        "id": 11925,
+        "location": "Macha Bollaram Near Water Tank",
+        "mandal": "Alwal",
+        "lat": 17.5185,
+        "lon": 78.509605
+    },
+    {
+        "id": 11927,
+        "location": "Central University (Near South Complex)",
+        "mandal": "Serilingampally",
+        "lat": 17.4531,
+        "lon": 78.3185
+    },
+    {
+        "id": 12007,
+        "location": "Begumpet (IMD Office)",
+        "mandal": "Balanagar",
+        "lat": 17.4482,
+        "lon": 78.46503
+    },
+    {
+        "id": 12542,
+        "location": "Ganaanka Bhavan",
+        "mandal": "Khairatabad",
+        "lat": 17.407976,
+        "lon": 78.46022
+    },
+    {
+        "id": 30011,
+        "location": "Kothabasthi Comm Hall: Alwal",
+        "mandal": "Alwal",
+        "lat": 17.49628,
+        "lon": 78.507256
+    },
+    {
+        "id": 30012,
+        "location": "Telecomcolony: Venkatapuram",
+        "mandal": "Alwal",
+        "lat": 17.491573,
+        "lon": 78.4984
+    },
+    {
+        "id": 30015,
+        "location": "Malakpet Millath Comm Hall",
+        "mandal": "Amberpet",
+        "lat": 17.38106,
+        "lon": 78.50033
+    },
+    {
+        "id": 30016,
+        "location": "Karwan Panipura Comm Hall",
+        "mandal": "Asifnagar",
+        "lat": 17.3732,
+        "lon": 78.44626
+    },
+    {
+        "id": 30017,
+        "location": "Gudimalkapur SBI Colony (communiy hall",
+        "mandal": "Asifnagar",
+        "lat": 17.383303,
+        "lon": 78.43956
+    },
+    {
+        "id": 30018,
+        "location": "Ziaguda Ranganath Comm Hall (beside ranganatha temple)",
+        "mandal": "Asifnagar",
+        "lat": 17.369156,
+        "lon": 78.45109
+    },
+    {
+        "id": 30019,
+        "location": "Football Ground Vijayanagar Colony",
+        "mandal": "Asifnagar",
+        "lat": 17.39327,
+        "lon": 78.45216
+    },
+    {
+        "id": 30021,
+        "location": "Chandulal Baradari Sports Complex: Doodbowli",
+        "mandal": "Bahadurpura",
+        "lat": 17.352516,
+        "lon": 78.461525
+    },
+    {
+        "id": 30022,
+        "location": "Bandi Adda Community Hall: Gansibazar",
+        "mandal": "Bahadurpura",
+        "lat": 17.366512,
+        "lon": 78.463104
+    },
+    {
+        "id": 30023,
+        "location": "Kishanbagh Govt High School",
+        "mandal": "Bahadurpura",
+        "lat": 17.360172,
+        "lon": 78.440414
+    },
+    {
+        "id": 30024,
+        "location": "Setwin Training Center: Suleman Nagar",
+        "mandal": "Bahadurpura",
+        "lat": 17.353971,
+        "lon": 78.43286
+    },
+    {
+        "id": 30025,
+        "location": "Ferozguda Comm Hall: Balanagar",
+        "mandal": "Balanagar",
+        "lat": 17.464579,
+        "lon": 78.462425
+    },
+    {
+        "id": 30026,
+        "location": "Mothinagar Ward Office: Moosapet",
+        "mandal": "Balanagar",
+        "lat": 17.45625,
+        "lon": 78.42234
+    },
+    {
+        "id": 30027,
+        "location": "Bhagath Singh Nagar Park: Fateh Nagar",
+        "mandal": "Balanagar",
+        "lat": 17.457764,
+        "lon": 78.45098
+    },
+    {
+        "id": 30030,
+        "location": "Barkas Ward Office",
+        "mandal": "Bandlaguda",
+        "lat": 17.315153,
+        "lon": 78.47857
+    },
+    {
+        "id": 30031,
+        "location": "OWISI Commnuity Hall: Kanchanbagh",
+        "mandal": "Bandlaguda",
+        "lat": 17.32707,
+        "lon": 78.49423
+    },
+    {
+        "id": 30032,
+        "location": "Indiranagar Community Hall",
+        "mandal": "Bandlaguda",
+        "lat": 17.323479,
+        "lon": 78.47543
+    },
+    {
+        "id": 30033,
+        "location": "Balashetty Water Tank Building(HMWS): Dabeerpura",
+        "mandal": "Charminar",
+        "lat": 17.369099,
+        "lon": 78.484436
+    },
+    {
+        "id": 30034,
+        "location": "Libraray Building: Rein Bazar",
+        "mandal": "Charminar",
+        "lat": 17.357998,
+        "lon": 78.493484
+    },
+    {
+        "id": 30036,
+        "location": "GHMC Welfare Office: Shaikpet",
+        "mandal": "Gandipet",
+        "lat": 17.404531,
+        "lon": 78.39681
+    },
+    {
+        "id": 30037,
+        "location": "Lungerhouse Haridsaspura Comm Hall",
+        "mandal": "Golkonda",
+        "lat": 17.378,
+        "lon": 78.41603
+    },
+    {
+        "id": 30041,
+        "location": "Lingojiguda Ward Office",
+        "mandal": "Saroornagar",
+        "lat": 17.34681,
+        "lon": 78.53438
+    },
+    {
+        "id": 30042,
+        "location": "Prashanth Nagar Comm Hall: Vanasthalipuram",
+        "mandal": "Hayathnagar",
+        "lat": 17.335426,
+        "lon": 78.56772
+    },
+    {
+        "id": 30043,
+        "location": "South Hasthinapuram South Comm Hall",
+        "mandal": "Hayathnagar",
+        "lat": 17.324724,
+        "lon": 78.55497
+    },
+    {
+        "id": 30046,
+        "location": "Veerannagudaa Comm Hall: Kachiguda",
+        "mandal": "Himayatnagar",
+        "lat": 17.390278,
+        "lon": 78.498055
+    },
+    {
+        "id": 30047,
+        "location": "Kushaiguda old ward office: Cherlapalli",
+        "mandal": "Kapra",
+        "lat": 17.482077,
+        "lon": 78.57407
+    },
+    {
+        "id": 30048,
+        "location": "Maheshnagar Ward Office: Dr.A.S.Rao Nagar",
+        "mandal": "Kapra",
+        "lat": 17.479156,
+        "lon": 78.55792
+    },
+    {
+        "id": 30049,
+        "location": "Cherlapally Health Center",
+        "mandal": "Kapra",
+        "lat": 17.464495,
+        "lon": 78.61104
+    },
+    {
+        "id": 30051,
+        "location": "Dr.MCRHRD IT Campus",
+        "mandal": "Shaikpet",
+        "lat": 17.433477,
+        "lon": 78.42055
+    },
+    {
+        "id": 30052,
+        "location": "Pillidarga Ward Office: Borabanda",
+        "mandal": "Khairatabad",
+        "lat": 17.451488,
+        "lon": 78.40889
+    },
+    {
+        "id": 30053,
+        "location": "Yousufguda HMWBS: (Krishnanagar)",
+        "mandal": "Khairatabad",
+        "lat": 17.437017,
+        "lon": 78.43232
+    },
+    {
+        "id": 30054,
+        "location": "Fatima Nagar community Hall",
+        "mandal": "Khairatabad",
+        "lat": 17.450256,
+        "lon": 78.42733
+    },
+    {
+        "id": 30055,
+        "location": "CBCID Colony: KPHB",
+        "mandal": "Kukatpally",
+        "lat": 17.497517,
+        "lon": 78.38051
+    },
+    {
+        "id": 30056,
+        "location": "Balaji Nagar",
+        "mandal": "Kukatpally",
+        "lat": 17.482891,
+        "lon": 78.409325
+    },
+    {
+        "id": 30060,
+        "location": "HMT hills: Hyder Nagar",
+        "mandal": "Kukatpally",
+        "lat": 17.503048,
+        "lon": 78.399536
+    },
+    {
+        "id": 30061,
+        "location": "Allapur Vivekananda Nagar Comm Hall",
+        "mandal": "Kukatpally",
+        "lat": 17.459558,
+        "lon": 78.399475
+    },
+    {
+        "id": 30063,
+        "location": "Prasanth Nagar Community Hall: East Anandbagh",
+        "mandal": "Malkajgiri",
+        "lat": 17.444721,
+        "lon": 78.54305
+    },
+    {
+        "id": 30064,
+        "location": "Madhusudhan Nagar Comm.Hall",
+        "mandal": "Malkajgiri",
+        "lat": 17.4427,
+        "lon": 78.5277
+    },
+    {
+        "id": 30065,
+        "location": "Vivekanandapuram Comm Hall: Neredmet",
+        "mandal": "Malkajgiri",
+        "lat": 17.4892,
+        "lon": 78.53111
+    },
+    {
+        "id": 30067,
+        "location": "Addagutta Community Hall",
+        "mandal": "Malkajgiri",
+        "lat": 17.443056,
+        "lon": 78.52361
+    },
+    {
+        "id": 30068,
+        "location": "Indiranagar Community Hall: Tarnaka",
+        "mandal": "Malkajgiri",
+        "lat": 17.441595,
+        "lon": 78.54256
+    },
+    {
+        "id": 30069,
+        "location": "Mettuguda Govt.: Primary School",
+        "mandal": "Malkajgiri",
+        "lat": 17.433374,
+        "lon": 78.519394
+    },
+    {
+        "id": 30070,
+        "location": "Seethapalmandi Kindi Basthi Comm Hall",
+        "mandal": "Maredpally",
+        "lat": 17.42639,
+        "lon": 78.513336
+    },
+    {
+        "id": 30071,
+        "location": "Pikit Health center:Contonment Area",
+        "mandal": "Maredpally",
+        "lat": 17.452557,
+        "lon": 78.50003
+    },
+    {
+        "id": 30074,
+        "location": "Bansilalpet",
+        "mandal": "Musheerabad",
+        "lat": 17.42632,
+        "lon": 78.4923
+    },
+    {
+        "id": 30075,
+        "location": "Osmania University Registrar Office",
+        "mandal": "Musheerabad",
+        "lat": 17.406706,
+        "lon": 78.519226
+    },
+    {
+        "id": 30076,
+        "location": "Red Hills play ground",
+        "mandal": "Nampally",
+        "lat": 17.395851,
+        "lon": 78.46462
+    },
+    {
+        "id": 30077,
+        "location": "Begum Bazar Doodh Khana UHC",
+        "mandal": "Nampally",
+        "lat": 17.375645,
+        "lon": 78.47123
+    },
+    {
+        "id": 30078,
+        "location": "LB Stadium: Gunfoudry",
+        "mandal": "Nampally",
+        "lat": 17.399162,
+        "lon": 78.47432
+    },
+    {
+        "id": 30079,
+        "location": "Dogs Control Building:Gowliwada Jumerath Bazar",
+        "mandal": "Nampally",
+        "lat": 17.371206,
+        "lon": 78.46423
+    },
+    {
+        "id": 30081,
+        "location": "Shanthi nagar Kalyanamandapam: Patancheru",
+        "mandal": "Patancheru",
+        "lat": 17.5279,
+        "lon": 78.265884
+    },
+    {
+        "id": 30082,
+        "location": "ModernComm Hall: Rangareddy Nagar",
+        "mandal": "Quthbullapur",
+        "lat": 17.484777,
+        "lon": 78.44695
+    },
+    {
+        "id": 30085,
+        "location": "Gayatri Nagar: Jeedimetla",
+        "mandal": "Quthbullapur",
+        "lat": 17.505287,
+        "lon": 78.4708
+    },
+    {
+        "id": 30086,
+        "location": "Ushodaya Colony Park: Gajularamaram",
+        "mandal": "Quthbullapur",
+        "lat": 17.52225,
+        "lon": 78.42664
+    },
+    {
+        "id": 30087,
+        "location": "BR Ambedkar bhavan",
+        "mandal": "Quthbullapur",
+        "lat": 17.538233,
+        "lon": 78.433464
+    },
+    {
+        "id": 30088,
+        "location": "GHMC Circle office: Rajendranagar",
+        "mandal": "Rajendranagar",
+        "lat": 17.331856,
+        "lon": 78.408875
+    },
+    {
+        "id": 30089,
+        "location": "RDO Office: Attapur",
+        "mandal": "Rajendranagar",
+        "lat": 17.357323,
+        "lon": 78.425385
+    },
+    {
+        "id": 30090,
+        "location": "Primary Urban Health Center: Jahanuma",
+        "mandal": "Bahadurpura",
+        "lat": 17.33322,
+        "lon": 78.45729
+    },
+    {
+        "id": 30091,
+        "location": "Near Ekta Colony: Shastripuram (Sivarampally)",
+        "mandal": "Rajendranagar",
+        "lat": 17.330753,
+        "lon": 78.43711
+    },
+    {
+        "id": 30092,
+        "location": "Sub Staion: Mailardevpally: Sivarampally",
+        "mandal": "Rajendranagar",
+        "lat": 17.31499,
+        "lon": 78.44551
+    },
+    {
+        "id": 30094,
+        "location": "DEO office Beside Substaion: R.C.Puram",
+        "mandal": "Ramachandrapuram",
+        "lat": 17.509394,
+        "lon": 78.30196
+    },
+    {
+        "id": 30095,
+        "location": "Vinay Nagar Comm Hal: I.S.Sadan",
+        "mandal": "Saidabad",
+        "lat": 17.352907,
+        "lon": 78.50762
+    },
+    {
+        "id": 30098,
+        "location": "Govt. Boys High School: Kurmaguda",
+        "mandal": "Saidabad",
+        "lat": 17.36007,
+        "lon": 78.50423
+    },
+    {
+        "id": 30099,
+        "location": "Alakapuri Comm Hall",
+        "mandal": "Saroornagar",
+        "lat": 17.36545,
+        "lon": 78.55312
+    },
+    {
+        "id": 30100,
+        "location": "Bavani Nagar Comm Hall",
+        "mandal": "Saroornagar",
+        "lat": 17.35032,
+        "lon": 78.56226
+    },
+    {
+        "id": 30101,
+        "location": "Rock Town Colony: Nagole",
+        "mandal": "Saroornagar",
+        "lat": 17.36184,
+        "lon": 78.56267
+    },
+    {
+        "id": 30103,
+        "location": "Patigadda",
+        "mandal": "Secunderabad",
+        "lat": 17.433964,
+        "lon": 78.484116
+    },
+    {
+        "id": 30104,
+        "location": "Raidurga Ward Office: Gachibowli",
+        "mandal": "Serilingampally",
+        "lat": 17.413216,
+        "lon": 78.3923
+    },
+    {
+        "id": 30105,
+        "location": "Kakatiya Hills: Madhapur",
+        "mandal": "Serilingampally",
+        "lat": 17.441742,
+        "lon": 78.39747
+    },
+    {
+        "id": 30106,
+        "location": "JPN Nagar Comm Hall: Miyapur",
+        "mandal": "Serilingampally",
+        "lat": 17.50657,
+        "lon": 78.35638
+    },
+    {
+        "id": 30107,
+        "location": "Urban Health Centre: Hafeezpet",
+        "mandal": "Serilingampally",
+        "lat": 17.486649,
+        "lon": 78.35675
+    },
+    {
+        "id": 30109,
+        "location": "MMTS Lingampally",
+        "mandal": "Serilingampally",
+        "lat": 17.485308,
+        "lon": 78.31467
+    },
+    {
+        "id": 30110,
+        "location": "PJR Stadium: Chandanagar",
+        "mandal": "Serilingampally",
+        "lat": 17.488832,
+        "lon": 78.32437
+    },
+    {
+        "id": 30111,
+        "location": "Khajaguda Sports Complex Gachibowli",
+        "mandal": "Serilingampally",
+        "lat": 17.418348,
+        "lon": 78.36665
+    },
+    {
+        "id": 30112,
+        "location": "Tolichowki Dalith Bhavan",
+        "mandal": "Shaikpet",
+        "lat": 17.403591,
+        "lon": 78.419685
+    },
+    {
+        "id": 30113,
+        "location": "Venkateshwara Colony: Banjarahills",
+        "mandal": "Shaikpet",
+        "lat": 17.419476,
+        "lon": 78.44202
+    },
+    {
+        "id": 30114,
+        "location": "CMTC Premises: Banjara Hills",
+        "mandal": "Shaikpet",
+        "lat": 17.41398,
+        "lon": 78.43367
+    },
+    {
+        "id": 30115,
+        "location": "Goutham Nagar Function Hall: Filmnagar",
+        "mandal": "Shaikpet",
+        "lat": 17.411781,
+        "lon": 78.41054
+    },
+    {
+        "id": 30116,
+        "location": "Venkatgiri Water Tank: Vengalrao Nagar",
+        "mandal": "Shaikpet",
+        "lat": 17.432058,
+        "lon": 78.422134
+    },
+    {
+        "id": 30117,
+        "location": "Rajiv Nagar Community Hall",
+        "mandal": "Uppal",
+        "lat": 17.4606,
+        "lon": 78.5704
+    },
+    {
+        "id": 30118,
+        "location": "Mallapur Biodiversity",
+        "mandal": "Uppal",
+        "lat": 17.44587,
+        "lon": 78.57425
+    },
+    {
+        "id": 30119,
+        "location": "Chilkanagar Comm Hall",
+        "mandal": "Uppal",
+        "lat": 17.421682,
+        "lon": 78.563255
+    },
+    {
+        "id": 30121,
+        "location": "Maruthi Nagar Mahila Sabha Center",
+        "mandal": "Uppal",
+        "lat": 17.375414,
+        "lon": 78.54099
+    },
+    {
+        "id": 30122,
+        "location": "New Nagole Welfare asscoiation",
+        "mandal": "Uppal",
+        "lat": 17.3734,
+        "lon": 78.55612
+    },
+    {
+        "id": 30123,
+        "location": "Habsiguda JSN Colony",
+        "mandal": "Uppal",
+        "lat": 17.405237,
+        "lon": 78.54175
+    },
+    {
+        "id": 30124,
+        "location": "Ramanthapur Ward Office",
+        "mandal": "Uppal",
+        "lat": 17.392805,
+        "lon": 78.536575
+    },
+    {
+        "id": 30125,
+        "location": "Nacharam Ward Office",
+        "mandal": "Uppal",
+        "lat": 17.424128,
+        "lon": 78.54361
+    },
+    {
+        "id": 30126,
+        "location": "Balramnagar Welfare Association: Safilguda",
+        "mandal": "Malkajgiri",
+        "lat": 17.466393,
+        "lon": 78.53417
+    },
+    {
+        "id": 30127,
+        "location": "GHMC Building Secunderabad",
+        "mandal": "Himayatnagar",
+        "lat": 17.40791,
+        "lon": 78.47556
+    },
+    {
+        "id": 30128,
+        "location": "CESS",
+        "mandal": "Khairatabad",
+        "lat": 17.432142,
+        "lon": 78.45264
+    },
+    {
+        "id": 30129,
+        "location": "Allabada Water Reservoir",
+        "mandal": "Asifnagar",
+        "lat": 17.380026,
+        "lon": 78.45543
+    },
+    {
+        "id": 30130,
+        "location": "Mehdipatnam Navodaya Comm Hall",
+        "mandal": "Asifnagar",
+        "lat": 17.387674,
+        "lon": 78.43624
+    }
+]
