@@ -24,7 +24,7 @@ function App() {
   const [viewMode, setViewMode] = useState('map'); // 'map', 'table'
   const [backgroundFetchStarted, setBackgroundFetchStarted] = useState(false);
   const [worker, setWorker] = useState(null);
-  const backendUrl = import.meta.env.BACKEND_URL;
+  const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
   // Initialize Web Worker
   useEffect(() => {

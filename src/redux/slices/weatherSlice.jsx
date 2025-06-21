@@ -5,7 +5,7 @@ const DB_NAME = 'WeatherDataCache';
 const DB_VERSION = 1;
 const STORE_NAME = 'weatherBatches';
 const CACHE_DURATION = 12 * 60 * 60 * 1000; // 12 hours in milliseconds
-const backendUrl = import.meta.env.BACKEND_URL;
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 class IndexedDBCache {
   constructor() {

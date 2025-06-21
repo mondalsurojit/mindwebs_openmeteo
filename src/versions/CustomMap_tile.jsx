@@ -4,7 +4,7 @@ import { Layers, Settings, Info, Palette, Eye, EyeOff, RotateCcw } from 'lucide-
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet.vectorgrid/dist/Leaflet.VectorGrid.bundled.js';
-const backendUrl = import.meta.env.BACKEND_URL;
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 // Custom hook for vector tiles with proper geometry handling
 const useVectorTiles = (map, timestep, visible, colorScheme) => {

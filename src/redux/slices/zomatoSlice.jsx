@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import staticStationData from '../../data/zws2.json';
-const backendUrl = import.meta.env.BACKEND_URL;
+const backendUrl = import.meta.env.VITE_BACKEND_URL;
 
 // Create city-to-station mapping and flattened station data
 const createStationMappings = (staticData) => {
