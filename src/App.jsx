@@ -218,7 +218,7 @@ function App() {
   // Error state - Enhanced with retry functionality
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
+      <div className="flex items-center justify-center h-screen bg-gray-100 overflow-hidden">
         <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md">
           <div className="text-red-500 mb-4 text-4xl">⚠️</div>
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Failed to Load Weather Data</h2>
@@ -247,7 +247,7 @@ function App() {
 
   // Success state - Show the app
   return (
-    <div className="relative max-w-screen-2xl h-screen">
+    <div className="relative max-w-screen-3xl h-screen m-auto overflow-hidden">
       <ControlPanel
         viewMode={viewMode}
         handleViewModeChange={handleViewModeChange} />
