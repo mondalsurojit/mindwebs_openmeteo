@@ -13,7 +13,7 @@ const HoverTooltip = () => {
 
     return (
         <div
-            className="absolute bg-white border border-gray-300 rounded-lg shadow-lg p-3 pointer-events-none z-40 w-64"
+            className="absolute bg-white border border-gray-300 rounded-lg shadow-lg p-3 pointer-events-none z-30 w-64"
             style={{
                 left: position.x + 10, top: position.y - 10,
                 transform: position.y < 100 ? 'translateY(0)' : 'translateY(-100%)'

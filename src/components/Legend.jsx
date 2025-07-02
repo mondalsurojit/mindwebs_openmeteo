@@ -19,7 +19,7 @@ const Legend = () => {
     const mapZoom = useSelector(selectMapZoom);
 
     return (
-        <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-lg p-3 z-40">
+        <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-lg p-3 z-30">
             <div className="flex items-center gap-2 mb-2">
                 <VariableIcon className="w-4 h-4 text-gray-600" />
                 <h4 className="text-sm font-medium text-gray-700">

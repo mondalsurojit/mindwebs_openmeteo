@@ -82,7 +82,7 @@ const ViewSelector = ({ currentView, onViewChange }) => {
     const currentViewData = MAP_VIEWS.find(view => view.id === currentView) || MAP_VIEWS[0];
 
     return (
-        <div className="absolute top-20 right-2.5 z-40">
+        <div className="absolute top-20 right-2.5 z-30">
             <button
                 onClick={toggleDropdown}
                 className="bg-white hover:bg-gray-50 border-2 border-gray-300 rounded-md shadow-sm w-8 h-10 text-md font-medium text-gray-700 flex items-center justify-center cursor-pointer transition-colors duration-200"

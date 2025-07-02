@@ -11,7 +11,7 @@ const initialState = {
   mapCenter: [17.4065, 78], mapZoom: 9,
 
   // Panel states
-  isControlPanelExpanded: false,
+  isControlPanelExpanded: true,
 
   // Stations/Grids control
   showGrids: true, showStations: false, selectedStationId: null,

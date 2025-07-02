@@ -93,7 +93,7 @@ function App() {
     dispatch(fetchInitialWeatherData());
   }, [dispatch]);
 
-  // FIXED: Simplified IndexedDB cache check
+  // Simplified IndexedDB cache check
   const checkCache = async (batchNumber) => {
     const DB_NAME = 'WeatherDataCache';
     const STORE_NAME = 'weatherBatches';
@@ -128,7 +128,7 @@ function App() {
     }
   };
 
-  // FIXED: Non-blocking background fetching - completely separate from animation
+  // Non-blocking background fetching - completely separate from animation
   useEffect(() => {
     if (weatherData && batchInfo && !backgroundFetchStarted && worker) {
       const { totalBatches, loadedBatches } = batchInfo;
@@ -137,7 +137,7 @@ function App() {
         console.log(`🚀 Starting background fetch of ${totalBatches - 1} remaining batches...`);
         setBackgroundFetchStarted(true);
 
-        // FIXED: Truly async background fetching that doesn't block animation
+        // Truly async background fetching that doesn't block animation
         const fetchRemainingBatches = async () => {
           // Process batches one at a time with minimal delay
           for (let batchNumber = 2; batchNumber <= totalBatches; batchNumber++) {
@@ -209,37 +209,47 @@ function App() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+      <div className="max-w-screen-3xl h-screen m-auto overflow-hidden">
+        <ControlPanel
+          viewMode={viewMode}
+          handleViewModeChange={handleViewModeChange} />
+
+        {renderContent()}
+
+        {/* Loading Overlay */}
+        <div className="fixed inset-0 z-40 bg-gray-600/25 backdrop-blur-xs"></div>
+        <div className="absolute inset-0 flex items-center justify-center z-50">
+          <div className="animate-spin rounded-full h-20 w-20 border-b-4 shadow-2xs border-blue-600"></div>
+        </div>
       </div>
     );
   }
 
-  // Error state - Enhanced with retry functionality
   if (error) {
     return (
-      <div className="flex items-center justify-center h-screen bg-gray-100 overflow-hidden">
-        <div className="text-center bg-white p-8 rounded-lg shadow-lg max-w-md">
-          <div className="text-red-500 mb-4 text-4xl">⚠️</div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Failed to Load Weather Data</h2>
-          <p className="text-gray-600 mb-4">{error}</p>
+      <div className="max-w-screen-3xl h-screen m-auto overflow-hidden">
+        <ControlPanel
+          viewMode={viewMode}
+          handleViewModeChange={handleViewModeChange} />
 
-          <div className="space-y-2 text-sm text-gray-500 mb-6">
-            <p>• Check your internet connection</p>
-            <p>• Verify the API server is running on ${backendUrl}:8000</p>
-            <p>• Ensure batch 001 data is available</p>
-          </div>
+        {renderContent()}
 
-          <button onClick={handleRetry}
-            className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-            Retry Loading</button>
+        {/* Error Overlay */}
+        <div className="fixed inset-0 z-40 bg-gray-600/25 backdrop-blur-xs"></div>
+        <div className="absolute inset-0 flex items-center justify-center z-50">
+          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md text-center">
+            <div className="text-red-500 mb-4 text-4xl">⚠️</div>
+            <h2 className="text-xl font-semibold text-gray-800 mb-2">Failed to Load Weather Data</h2>
 
-          {/* Show cache stats even in error state */}
-          {cacheStats && (cacheStats.hits > 0 || cacheStats.misses > 0) && (
-            <div className="mt-4 text-xs text-gray-500">
-              Cache: {cacheStats.hits} hits, {cacheStats.misses} misses
+            <div className="space-y-2 text-sm text-gray-500 mb-6 px-10">
+              <p>Check your internet connection</p>
+              <p>Verify the Backend/API server is running</p>
             </div>
-          )}
+
+            <button onClick={handleRetry}
+              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer">
+              Retry Loading</button>
+          </div>
         </div>
       </div>
     );
@@ -252,9 +262,7 @@ function App() {
         viewMode={viewMode}
         handleViewModeChange={handleViewModeChange} />
 
-      {/* Content Area */}
       {renderContent()}
-
     </div>
   );
 }

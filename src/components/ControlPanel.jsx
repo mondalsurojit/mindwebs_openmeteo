@@ -30,24 +30,24 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     const currentTimestamp = useSelector(selectCurrentTimestamp);
     const animationSpeed = useSelector(selectAnimationSpeed);
     const weatherVariables = useSelector(selectWeatherVariables);
-    const currentStats = useSelector(selectCurrentStats);
+    // const currentStats = useSelector(selectCurrentStats);
     const timeIndices = useSelector(selectTimeIndices);
     const timeRangeInfo = useSelector(selectTimeRangeInfo);
     const batchInfo = useSelector(selectBatchInfo);
-    const fetchingBatches = useSelector(selectFetchingBatches);
+    // const fetchingBatches = useSelector(selectFetchingBatches);
 
     // UI state from Redux
     const isPlaying = useSelector(selectIsPlaying);
     const opacity = useSelector(selectOpacity);
     const showWindAnimation = useSelector(selectShowWindAnimation);
     const isControlPanelExpanded = useSelector(selectIsControlPanelExpanded);
-    const showDataTable = useSelector(selectShowDataTable);
+    // const showDataTable = useSelector(selectShowDataTable);
     const showGrid = useSelector(selectShowGrid);
     const showStations = useSelector(selectShowStations);
 
-    const selectedCity = useSelector(selectSelectedCities);
-    const showZWS = useSelector(selectShowZWS);
-    const availableCities = useSelector(selectAvailableCities);
+    // const selectedCity = useSelector(selectSelectedCities);
+    // const showZWS = useSelector(selectShowZWS);
+    // const availableCities = useSelector(selectAvailableCities);
 
     // Mode state - default to IIT-H Forecast
     const [selectedMode, setSelectedMode] = React.useState('iith');
@@ -59,8 +59,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
 
     // Get min and max available time indices
     const [minTimeIndex, maxTimeIndex] = timeIndices.length > 0
-        ? [Math.min(...timeIndices), Math.max(...timeIndices)]
-        : [0, 0];
+        ? [Math.min(...timeIndices), Math.max(...timeIndices)]: [0, 0];
 
     // Get total possible time indices from metadata
     const totalTimeIndices = timeRangeInfo ? timeRangeInfo.totalTimestamps - 1 : maxTimeIndex;
@@ -70,13 +69,13 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         ? (batchInfo.loadedBatches.length / batchInfo.totalBatches) * 100
         : 0;
 
-    // FIXED: Simple max available calculation - just use what's currently loaded
+    // Simple max available calculation - just use what's currently loaded
     const maxAvailableTimeIndex = timeIndices.length > 0 ? Math.max(...timeIndices) : 0;
 
-    // FIXED: Convert animation speed (interval) to speed multiplier for display and control
+    // Convert animation speed (interval) to speed multiplier for display and control
     const speedMultiplier = 1000 / animationSpeed; // Convert interval to multiplier
 
-    // FIXED: Consolidated animation timer with proper cleanup
+    // Consolidated animation timer with proper cleanup
     const animationTimer = React.useRef(null);
 
     const startAnimation = React.useCallback(() => {
@@ -99,7 +98,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         }
     }, []);
 
-    // FIXED: Single useEffect to control animation - handles both play state and speed changes
+    // Single useEffect to control animation - handles both play state and speed changes
     React.useEffect(() => {
         if (isPlaying && selectedMode === 'iith') {
             startAnimation();
@@ -217,7 +216,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     const currentProgress = totalTimeIndices > 0 ? (currentTimeIndex / totalTimeIndices) * 100 : 0;
 
     return (
-        <div className={`absolute top-0 left-0 bg-white shadow-lg p-3 sm:p-4 z-50 
+        <div className={`absolute top-0 left-0 bg-white shadow-lg p-3 sm:p-4 z-40 
             w-full sm:min-w-96 sm:w-1/3 lg:w-1/4 xl:w-1/5 h-full 
             transition-all duration-300 flex flex-col ease-in-out 
             ${isControlPanelExpanded ? '' : '-translate-x-full'}`}>
@@ -225,7 +224,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
             {/* Desktop Toggle Button - positioned outside panel */}
             <button aria-label="Toggle Control Panel"
                 onClick={() => dispatch(setControlPanelExpanded(!isControlPanelExpanded))}
-                className="hidden sm:block absolute h-10 w-8 grid place-items-center top-1/2 right-0 translate-x-full -translate-y-1/2 z-50 bg-white shadow-md rounded-r-3xl outline-0 hover:bg-gray-100 transition-all cursor-pointer">
+                className="hidden sm:block absolute h-10 w-8 grid place-items-center top-1/2 right-0 translate-x-full -translate-y-1/2 z-40 bg-white shadow-md rounded-r-3xl outline-0 hover:bg-gray-100 transition-all cursor-pointer">
                 <ChevronLeft
                     className={`w-5 h-5 mr-2 text-gray-600 transition-transform duration-200 ${isControlPanelExpanded ? '' : 'rotate-180'}`} />
             </button>
@@ -234,7 +233,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
             <button
                 aria-label="Toggle Control Panel"
                 onClick={() => dispatch(setControlPanelExpanded(!isControlPanelExpanded))}
-                className={`sm:hidden absolute h-8 w-8 grid place-items-center z-50 bg-white shadow-md outline-0 hover:bg-gray-100 transition-all cursor-pointer
+                className={`sm:hidden absolute h-8 w-8 grid place-items-center z-40 bg-white shadow-md outline-0 hover:bg-gray-100 transition-all cursor-pointer
                     ${isControlPanelExpanded
                         ? 'top-1/2 right-0 -translate-y-1/2 rounded-l-3xl'
                         : 'top-1/2 right-0 translate-x-full -translate-y-1/2 rounded-r-3xl w-6'

@@ -343,7 +343,7 @@ const Charts = () => {
     }
 
     return (
-        <div className={`bg-white transition-all duration-300 pt-6 ${isExpanded ? 'fixed inset-4 z-50' : 'p-0'}`}>
+        <div className={`bg-white transition-all duration-300 pt-6 ${isExpanded ? 'fixed inset-4 z-40' : 'p-0'}`}>
             {isExpanded && (
                 <div className="absolute inset-0 bg-white rounded-lg shadow-2xl p-6 overflow-auto">
                     <button
