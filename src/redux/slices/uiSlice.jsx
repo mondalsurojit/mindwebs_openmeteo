@@ -14,7 +14,7 @@ const initialState = {
   isControlPanelExpanded: true,
 
   // Stations/Grids control
-  showGrids: true, showStations: false, selectedStationId: null,
+  showGrids: false, showStations: false, selectedStationId: null,
 
   showDataTable: false,
 };

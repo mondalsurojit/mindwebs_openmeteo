@@ -207,53 +207,53 @@ function App() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="max-w-screen-3xl h-screen m-auto overflow-hidden">
-        <ControlPanel
-          viewMode={viewMode}
-          handleViewModeChange={handleViewModeChange} />
+  // if (loading) {
+  //   return (
+  //     <div className="max-w-screen-3xl h-screen m-auto overflow-hidden">
+  //       <ControlPanel
+  //         viewMode={viewMode}
+  //         handleViewModeChange={handleViewModeChange} />
 
-        {renderContent()}
+  //       {renderContent()}
 
-        {/* Loading Overlay */}
-        <div className="fixed inset-0 z-40 bg-gray-600/25 backdrop-blur-xs"></div>
-        <div className="absolute inset-0 flex items-center justify-center z-50">
-          <div className="animate-spin rounded-full h-20 w-20 border-b-4 shadow-2xs border-blue-600"></div>
-        </div>
-      </div>
-    );
-  }
+  //       {/* Loading Overlay */}
+  //       <div className="fixed inset-0 z-40 bg-gray-600/25 backdrop-blur-xs"></div>
+  //       <div className="absolute inset-0 flex items-center justify-center z-50">
+  //         <div className="animate-spin rounded-full h-20 w-20 border-b-4 shadow-2xs border-blue-600"></div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
-  if (error) {
-    return (
-      <div className="max-w-screen-3xl h-screen m-auto overflow-hidden">
-        <ControlPanel
-          viewMode={viewMode}
-          handleViewModeChange={handleViewModeChange} />
+  // if (error) {
+  //   return (
+  //     <div className="max-w-screen-3xl h-screen m-auto overflow-hidden">
+  //       <ControlPanel
+  //         viewMode={viewMode}
+  //         handleViewModeChange={handleViewModeChange} />
 
-        {renderContent()}
+  //       {renderContent()}
 
-        {/* Error Overlay */}
-        <div className="fixed inset-0 z-40 bg-gray-600/25 backdrop-blur-xs"></div>
-        <div className="absolute inset-0 flex items-center justify-center z-50">
-          <div className="bg-white p-8 rounded-lg shadow-lg max-w-md text-center">
-            <div className="text-red-500 mb-4 text-4xl">⚠️</div>
-            <h2 className="text-xl font-semibold text-gray-800 mb-2">Failed to Load Weather Data</h2>
+  //       {/* Error Overlay */}
+  //       <div className="fixed inset-0 z-40 bg-gray-600/25 backdrop-blur-xs"></div>
+  //       <div className="absolute inset-0 flex items-center justify-center z-50">
+  //         <div className="bg-white p-8 rounded-lg shadow-lg max-w-md text-center">
+  //           <div className="text-red-500 mb-4 text-4xl">⚠️</div>
+  //           <h2 className="text-xl font-semibold text-gray-800 mb-2">Failed to Load Weather Data</h2>
 
-            <div className="space-y-2 text-sm text-gray-500 mb-6 px-10">
-              <p>Check your internet connection</p>
-              <p>Verify the Backend/API server is running</p>
-            </div>
+  //           <div className="space-y-2 text-sm text-gray-500 mb-6 px-10">
+  //             <p>Check your internet connection</p>
+  //             <p>Verify the Backend/API server is running</p>
+  //           </div>
 
-            <button onClick={handleRetry}
-              className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer">
-              Retry Loading</button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  //           <button onClick={handleRetry}
+  //             className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium cursor-pointer">
+  //             Retry Loading</button>
+  //         </div>
+  //       </div>
+  //     </div>
+  //   );
+  // }
 
   // Success state - Show the app
   return (

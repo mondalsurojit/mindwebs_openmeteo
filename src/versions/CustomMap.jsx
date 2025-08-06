@@ -9,6 +9,7 @@ import GridOverlay from '../components/overlays/GridOverlay';
 import StationsOverlay from '../components/overlays/StationsOverlay';
 import WindOverlay from '../components/overlays/WindOverlay';
 import ZWSOverlay from '../components/overlays/ZWSOverlay';
+import PolygonOverlay from '../components/overlays/PolygonOverlay';
 import Legend from '../components/Legend';
 
 import {
@@ -21,6 +22,11 @@ import {
     selectHoverData, selectMapCenter, selectMapZoom, selectShowGrid,
     setMapZoom
 } from '../redux/slices/uiSlice';
+
+import {
+    selectDrawingMode, selectPolygonPoints, selectOpenMeteoData,
+    selectHasValidData as selectOpenMeteoHasValidData
+} from '../redux/slices/openMeteoSlice';
 
 // Fix for default markers in React Leaflet
 delete L.Icon.Default.prototype._getIconUrl;
@@ -124,7 +130,7 @@ const ZoomTracker = ({ onZoomChange }) => {
     return null;
 };
 
-const CustomMap = () => {
+const CustomMap = ({ selectedDataSource = 'wrf' }) => {
     const dispatch = useDispatch();
     const [currentMapView, setCurrentMapView] = useState('street');
 
@@ -145,6 +151,12 @@ const CustomMap = () => {
     const mapZoom = useSelector(selectMapZoom);
     const showGrids = useSelector(selectShowGrid);
 
+    // OpenMeteo state from Redux
+    const drawingMode = useSelector(selectDrawingMode);
+    const polygonPoints = useSelector(selectPolygonPoints);
+    const openMeteoData = useSelector(selectOpenMeteoData);
+    const openMeteoHasValidData = useSelector(selectOpenMeteoHasValidData);
+
     const handleZoomChange = useCallback((zoom) => {
         dispatch(setMapZoom(zoom));
         // Clear hover data when zoomed out beyond level 10
@@ -157,7 +169,7 @@ const CustomMap = () => {
 
     // Smooth animation loop using requestAnimationFrame
     const animationLoop = useCallback((currentTime) => {
-        if (!isPlaying || !weatherData || timeSteps.length === 0) {
+        if (!isPlaying || (selectedDataSource === 'wrf' && (!weatherData || timeSteps.length === 0))) {
             animationFrameRef.current = null;
             return;
         }
@@ -171,11 +183,11 @@ const CustomMap = () => {
 
         // Continue animation loop
         animationFrameRef.current = requestAnimationFrame(animationLoop);
-    }, [isPlaying, weatherData, timeSteps.length, dispatch]);
+    }, [isPlaying, weatherData, timeSteps.length, dispatch, selectedDataSource]);
 
     // Start/stop animation with requestAnimationFrame
     useEffect(() => {
-        if (isPlaying && weatherData && timeSteps.length > 0) {
+        if (isPlaying && selectedDataSource === 'wrf' && weatherData && timeSteps.length > 0) {
             // Reset timing
             lastFrameTimeRef.current = performance.now();
 
@@ -198,14 +210,14 @@ const CustomMap = () => {
                 animationFrameRef.current = null;
             }
         };
-    }, [isPlaying, weatherData, timeSteps.length, animationLoop]);
+    }, [isPlaying, weatherData, timeSteps.length, animationLoop, selectedDataSource]);
 
     // Stop animation when data is not available
     useEffect(() => {
-        if (isPlaying && (!weatherData || timeSteps.length === 0)) {
+        if (isPlaying && selectedDataSource === 'wrf' && (!weatherData || timeSteps.length === 0)) {
             dispatch(setIsPlaying(false));
         }
-    }, [weatherData, timeSteps.length, isPlaying, dispatch]);
+    }, [weatherData, timeSteps.length, isPlaying, dispatch, selectedDataSource]);
 
     // Dynamic frame rate based on data availability and performance
     useEffect(() => {
@@ -241,6 +253,11 @@ const CustomMap = () => {
     // Get current view configuration
     const currentViewConfig = MAP_VIEWS.find(view => view.id === currentMapView) || MAP_VIEWS[0];
 
+    // Determine which overlays to show based on data source
+    const shouldShowGridOverlay = selectedDataSource === 'wrf' && weatherData && showGrids;
+    const shouldShowPolygonOverlay = selectedDataSource === 'openmeteo';
+    const shouldShowStandardOverlays = selectedDataSource === 'wrf';
+
     return (
         <div className="relative h-screen w-full">
             <div className="relative h-full w-full" onMouseLeave={handleMapMouseLeave}>
@@ -261,15 +278,28 @@ const CustomMap = () => {
                     <TileLayer
                         key={currentMapView} // Force re-render when view changes
                         url={currentViewConfig.url}
-                        attribution={currentViewConfig.attribution}/>
+                        attribution={currentViewConfig.attribution} />
 
                     <ZoomTracker onZoomChange={handleZoomChange} />
 
-                    {weatherData && showGrids && (
+                    {/* Standard WRF Overlays */}
+                    {shouldShowGridOverlay && (
                         <GridOverlay onHover={handleHover} className='z-20' />
                     )}
-                    <WindOverlay />
-                    <StationsOverlay />
+
+                    {shouldShowStandardOverlays && (
+                        <>
+                            <WindOverlay />
+                            <StationsOverlay />
+                        </>
+                    )}
+
+                    {/* OpenMeteo Polygon Overlay */}
+                    {/* {shouldShowPolygonOverlay && ( */}
+                     <PolygonOverlay onHover={handleHover} />
+                     {/* )} */}
+
+                    {/* Always show ZWS overlay */}
                     <ZWSOverlay />
                 </MapContainer>
 
@@ -279,10 +309,47 @@ const CustomMap = () => {
                     onViewChange={handleViewChange}
                 />
 
-                {mapZoom >= 10 && <HoverTooltip />}
+                {/* Show hover tooltip based on conditions */}
+                {((mapZoom >= 10 && selectedDataSource === 'wrf') ||
+                    (selectedDataSource === 'openmeteo' && openMeteoHasValidData)) && (
+                        <HoverTooltip />
+                    )}
+
+                {/* Drawing Mode Indicator for OpenMeteo */}
+                {selectedDataSource === 'openmeteo' && drawingMode === 'draw' && (
+                    <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30">
+                        <div className="bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+                            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                            <span className="font-medium">
+                                Drawing Mode - Click on map to add points ({polygonPoints.length}/12)
+                            </span>
+                        </div>
+                    </div>
+                )}
+
+                {/* Polygon Status Indicator for OpenMeteo */}
+                {selectedDataSource === 'openmeteo' && polygonPoints.length > 0 && (
+                    <div className="absolute top-4 right-4 z-30">
+                        <div className="bg-white border border-gray-300 rounded-lg shadow-lg p-3">
+                            <div className="text-sm font-medium text-gray-700 mb-1">Polygon Status</div>
+                            <div className="flex items-center gap-2 text-xs">
+                                <div className={`w-2 h-2 rounded-full ${polygonPoints.length >= 3 ? 'bg-green-500' : 'bg-yellow-500'}`}></div>
+                                <span className={polygonPoints.length >= 3 ? 'text-green-700' : 'text-yellow-700'}>
+                                    {polygonPoints.length >= 3 ? 'Complete' : 'Need more points'}
+                                </span>
+                            </div>
+                            {openMeteoHasValidData && (
+                                <div className="flex items-center gap-2 text-xs mt-1">
+                                    <div className="w-2 h-2 rounded-full bg-blue-500"></div>
+                                    <span className="text-blue-700">Weather data loaded</span>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
             </div>
 
-            <Legend />
+            <Legend selectedDataSource={selectedDataSource} />
         </div>
     );
 };

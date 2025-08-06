@@ -1,6 +1,6 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Play, Pause, RotateCcw, SkipBack, SkipForward, Eye, EyeOff, ChevronLeft, RadioTower, Grid3x3, MapPin, Zap, Activity, Map, Table2, Wind } from 'lucide-react';
+import { Play, Pause, RotateCcw, SkipBack, SkipForward, Eye, EyeOff, ChevronLeft, ChevronRight, RadioTower, Grid3x3, MapPin, Zap, Activity, Map, Table2, Wind, Edit3, Eraser, Download, Edit, X, Check } from 'lucide-react';
 import ZWSControls from './ZWSControls';
 
 import {
@@ -21,6 +21,14 @@ import {
     clearWeatherData as clearZomatoWeatherData
 } from '../redux/slices/zomatoSlice';
 
+import {
+    setDrawingMode, setPolygonPoints, clearPolygonData, selectDrawingMode, 
+    selectPolygonPoints, selectPolygonArea, selectOpenMeteoData, selectOpenMeteoLoading,
+    selectOpenMeteoCurrentTimeIndex, setOpenMeteoCurrentTimeIndex, selectOpenMeteoTimeIndices,
+    advanceOpenMeteoTime, setOpenMeteoAnimationSpeed, selectOpenMeteoAnimationSpeed,
+    triggerDataFetch, removePolygonPoint, editPolygonPoint
+} from '../redux/slices/openMeteoSlice';
+
 const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     const dispatch = useDispatch();
 
@@ -30,66 +38,110 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     const currentTimestamp = useSelector(selectCurrentTimestamp);
     const animationSpeed = useSelector(selectAnimationSpeed);
     const weatherVariables = useSelector(selectWeatherVariables);
-    // const currentStats = useSelector(selectCurrentStats);
     const timeIndices = useSelector(selectTimeIndices);
     const timeRangeInfo = useSelector(selectTimeRangeInfo);
     const batchInfo = useSelector(selectBatchInfo);
-    // const fetchingBatches = useSelector(selectFetchingBatches);
 
     // UI state from Redux
     const isPlaying = useSelector(selectIsPlaying);
     const opacity = useSelector(selectOpacity);
     const showWindAnimation = useSelector(selectShowWindAnimation);
     const isControlPanelExpanded = useSelector(selectIsControlPanelExpanded);
-    // const showDataTable = useSelector(selectShowDataTable);
     const showGrid = useSelector(selectShowGrid);
     const showStations = useSelector(selectShowStations);
 
-    // const selectedCity = useSelector(selectSelectedCities);
-    // const showZWS = useSelector(selectShowZWS);
-    // const availableCities = useSelector(selectAvailableCities);
+    // OpenMeteo state from Redux
+    const drawingMode = useSelector(selectDrawingMode);
+    const polygonPoints = useSelector(selectPolygonPoints);
+    const polygonArea = useSelector(selectPolygonArea);
+    const openMeteoData = useSelector(selectOpenMeteoData);
+    const openMeteoLoading = useSelector(selectOpenMeteoLoading);
+    const openMeteoCurrentTimeIndex = useSelector(selectOpenMeteoCurrentTimeIndex);
+    const openMeteoTimeIndices = useSelector(selectOpenMeteoTimeIndices);
+    const openMeteoAnimationSpeed = useSelector(selectOpenMeteoAnimationSpeed);
 
     // Mode state - default to IIT-H Forecast
     const [selectedMode, setSelectedMode] = React.useState('iith');
+    const [selectedDataSource, setSelectedDataSource] = React.useState('openmeteo'); // New state for data source
     const [previousIITHSettings, setPreviousIITHSettings] = React.useState({
         showGrid: false,
         showWindAnimation: false,
         showStations: false
     });
 
+    // Data sources for IIT-H Forecast
+    const dataSources = [
+        { id: 'wrf', name: 'WRF Model', icon: '🌡️' },
+        { id: 'openmeteo', name: 'OpenMeteo', icon: '🌐' }
+    ];
+
+    // Get current data source info
+    const currentDataSource = dataSources.find(ds => ds.id === selectedDataSource) || dataSources[0];
+
+    // Check if polygon is complete (3+ points)
+    const isPolygonComplete = polygonPoints.length >= 3;
+    const hasPolygonPoints = polygonPoints.length > 0;
+
+    // Get appropriate time indices and current time based on data source
+    const getCurrentTimeIndices = () => {
+        if (selectedDataSource === 'openmeteo') {
+            return openMeteoTimeIndices;
+        }
+        return timeIndices;
+    };
+
+    const getCurrentTimeIndex = () => {
+        if (selectedDataSource === 'openmeteo') {
+            return openMeteoCurrentTimeIndex;
+        }
+        return currentTimeIndex;
+    };
+
+    const getCurrentAnimationSpeed = () => {
+        if (selectedDataSource === 'openmeteo') {
+            return openMeteoAnimationSpeed;
+        }
+        return animationSpeed;
+    };
+
     // Get min and max available time indices
-    const [minTimeIndex, maxTimeIndex] = timeIndices.length > 0
-        ? [Math.min(...timeIndices), Math.max(...timeIndices)]: [0, 0];
+    const currentTimeIndices = getCurrentTimeIndices();
+    const [minTimeIndex, maxTimeIndex] = currentTimeIndices.length > 0
+        ? [Math.min(...currentTimeIndices), Math.max(...currentTimeIndices)] : [0, 0];
 
     // Get total possible time indices from metadata
-    const totalTimeIndices = timeRangeInfo ? timeRangeInfo.totalTimestamps - 1 : maxTimeIndex;
+    const totalTimeIndices = selectedDataSource === 'openmeteo' 
+        ? (openMeteoData?.hourly?.time?.length || 0) - 1
+        : (timeRangeInfo ? timeRangeInfo.totalTimestamps - 1 : maxTimeIndex);
 
     // Calculate loaded percentage for slider
-    const loadedPercentage = timeRangeInfo && batchInfo
-        ? (batchInfo.loadedBatches.length / batchInfo.totalBatches) * 100
-        : 0;
+    const loadedPercentage = selectedDataSource === 'openmeteo'
+        ? 100 // OpenMeteo data is loaded all at once
+        : (timeRangeInfo && batchInfo ? (batchInfo.loadedBatches.length / batchInfo.totalBatches) * 100 : 0);
 
-    // Simple max available calculation - just use what's currently loaded
-    const maxAvailableTimeIndex = timeIndices.length > 0 ? Math.max(...timeIndices) : 0;
+    // Simple max available calculation
+    const maxAvailableTimeIndex = currentTimeIndices.length > 0 ? Math.max(...currentTimeIndices) : 0;
 
     // Convert animation speed (interval) to speed multiplier for display and control
-    const speedMultiplier = 1000 / animationSpeed; // Convert interval to multiplier
+    const speedMultiplier = 1000 / getCurrentAnimationSpeed();
 
     // Consolidated animation timer with proper cleanup
     const animationTimer = React.useRef(null);
 
     const startAnimation = React.useCallback(() => {
-        // Always clear existing timer first
         if (animationTimer.current) {
             clearInterval(animationTimer.current);
             animationTimer.current = null;
         }
 
-        // Start new timer with current speed
         animationTimer.current = setInterval(() => {
-            dispatch(advanceTime());
-        }, animationSpeed);
-    }, [animationSpeed, dispatch]);
+            if (selectedDataSource === 'openmeteo') {
+                dispatch(advanceOpenMeteoTime());
+            } else {
+                dispatch(advanceTime());
+            }
+        }, getCurrentAnimationSpeed());
+    }, [getCurrentAnimationSpeed, dispatch, selectedDataSource]);
 
     const stopAnimation = React.useCallback(() => {
         if (animationTimer.current) {
@@ -98,7 +150,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         }
     }, []);
 
-    // Single useEffect to control animation - handles both play state and speed changes
+    // Animation control effect
     React.useEffect(() => {
         if (isPlaying && selectedMode === 'iith') {
             startAnimation();
@@ -106,9 +158,25 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
             stopAnimation();
         }
 
-        // Cleanup on unmount or when dependencies change
         return stopAnimation;
-    }, [isPlaying, selectedMode, animationSpeed, startAnimation, stopAnimation]);
+    }, [isPlaying, selectedMode, getCurrentAnimationSpeed, startAnimation, stopAnimation]);
+
+    // Handle data source cycling
+    const handleDataSourceChange = () => {
+        const currentIndex = dataSources.findIndex(ds => ds.id === selectedDataSource);
+        const nextIndex = (currentIndex + 1) % dataSources.length;
+        const nextDataSource = dataSources[nextIndex];
+        
+        setSelectedDataSource(nextDataSource.id);
+        
+        // Clear any existing data when switching
+        if (nextDataSource.id === 'openmeteo') {
+            dispatch(clearPolygonData());
+        } else {
+            // Clear OpenMeteo data when switching away
+            dispatch(clearPolygonData());
+        }
+    };
 
     const handleCityChange = (city) => {
         dispatch(setSelectedCities(city));
@@ -119,56 +187,80 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
 
     const handleReset = () => {
         dispatch(setIsPlaying(false));
-        dispatch(setCurrentTimeIndex(0)); // Reset to first time index
+        if (selectedDataSource === 'openmeteo') {
+            dispatch(setOpenMeteoCurrentTimeIndex(0));
+        } else {
+            dispatch(setCurrentTimeIndex(0));
+        }
     };
 
     const handleVariableChange = (value) => dispatch(setSelectedVariable(value));
 
-    // FIXED: Simple time index change - no complex validation
+    // Handle time index change based on data source
     const handleTimeIndexChange = (value) => {
         const newTimeIndex = parseInt(value);
-        dispatch(setCurrentTimeIndex(newTimeIndex));
+        if (selectedDataSource === 'openmeteo') {
+            dispatch(setOpenMeteoCurrentTimeIndex(newTimeIndex));
+        } else {
+            dispatch(setCurrentTimeIndex(newTimeIndex));
+        }
     };
 
     const handleOpacityChange = (value) => {
-        // Bulletproof opacity handling
         let newOpacity = parseFloat(value);
 
-        // Validate and sanitize the opacity value
         if (isNaN(newOpacity) || newOpacity < 0) {
-            newOpacity = 0.1; // Minimum useful opacity
+            newOpacity = 0.1;
         } else if (newOpacity > 1) {
-            newOpacity = 1; // Maximum opacity
+            newOpacity = 1;
         } else if (newOpacity < 0.05 && newOpacity > 0) {
-            newOpacity = 0.05; // Prevent near-invisible values
+            newOpacity = 0.05;
         }
 
-        // Round to avoid floating point precision issues
         newOpacity = Math.round(newOpacity * 100) / 100;
-
         dispatch(setOpacity(newOpacity));
     };
 
-    // FIXED: Handle speed multiplier change and convert to interval
+    // Handle speed multiplier change based on data source
     const handleSpeedMultiplierChange = (value) => {
         const newSpeedMultiplier = parseFloat(value);
-        const newAnimationSpeed = Math.round(1000 / newSpeedMultiplier); // Convert multiplier to interval
-        dispatch(setAnimationSpeed(newAnimationSpeed));
+        const newAnimationSpeed = Math.round(1000 / newSpeedMultiplier);
+        
+        if (selectedDataSource === 'openmeteo') {
+            dispatch(setOpenMeteoAnimationSpeed(newAnimationSpeed));
+        } else {
+            dispatch(setAnimationSpeed(newAnimationSpeed));
+        }
     };
 
     const handleWindAnimationToggle = (checked) => dispatch(setShowWindAnimation(checked));
 
+    // OpenMeteo specific handlers
+    const handleDrawingModeToggle = () => {
+        dispatch(setDrawingMode(drawingMode === 'draw' ? 'view' : 'draw'));
+    };
+
+    const handleEraserMode = () => {
+        dispatch(setDrawingMode('view'));
+        dispatch(clearPolygonData());
+    };
+
+    // Handle Done button click - triggers data fetch
+    const handleDoneClick = () => {
+        if (isPolygonComplete) {
+            dispatch(triggerDataFetch());
+        }
+    };
+
     const handleModeChange = (mode) => {
         setSelectedMode(mode);
 
-        // Handle mode-specific logic
         if (mode === 'iith') {
             dispatch(setShowZWS(false));
             dispatch(setShowGrid(previousIITHSettings.showGrid));
             dispatch(setShowWindAnimation(previousIITHSettings.showWindAnimation));
             dispatch(setShowStations(previousIITHSettings.showStations));
         } else if (mode === 'realtime') {
-            // Only save IITH settings if currently in IITH mode
             if (selectedMode === 'iith') {
                 setPreviousIITHSettings({
                     showGrid: showGrid,
@@ -181,9 +273,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
             dispatch(setShowGrid(false));
             dispatch(setShowWindAnimation(false));
             dispatch(setShowStations(false));
-            // Don't clear weather data - preserve for when switching back to IITH
         } else if (mode === 'other') {
-            // Only save IITH settings if currently in IITH mode
             if (selectedMode === 'iith') {
                 setPreviousIITHSettings({
                     showGrid: showGrid,
@@ -196,7 +286,6 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
             dispatch(setShowGrid(false));
             dispatch(setShowWindAnimation(false));
             dispatch(setShowStations(false));
-            // Don't clear weather data - preserve for when switching back to IITH
         }
     };
 
@@ -212,8 +301,17 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         });
     };
 
+    // Get current timestamp based on data source
+    const getCurrentTimestamp = () => {
+        if (selectedDataSource === 'openmeteo' && openMeteoData?.hourly?.time) {
+            const timeString = openMeteoData.hourly.time[openMeteoCurrentTimeIndex];
+            return timeString ? new Date(timeString) : null;
+        }
+        return currentTimestamp;
+    };
+
     // Calculate current progress percentage
-    const currentProgress = totalTimeIndices > 0 ? (currentTimeIndex / totalTimeIndices) * 100 : 0;
+    const currentProgress = totalTimeIndices > 0 ? (getCurrentTimeIndex() / totalTimeIndices) * 100 : 0;
 
     return (
         <div className={`absolute top-0 left-0 bg-white shadow-lg p-3 sm:p-4 z-40 
@@ -245,18 +343,35 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
             {/* Mode Selection */}
             <div className="mb-3 sm:mb-4 mt-8 sm:mt-0">
                 <div className="space-y-2">
-                    <button
-                        onClick={() => handleModeChange('iith')}
-                        className={`w-full flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 rounded-lg border-2 cursor-pointer transition-all ${selectedMode === 'iith'
-                            ? 'border-blue-500 bg-blue-50 text-blue-700'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                    {/* Enhanced IIT-H Forecast Button with Data Source Selector */}
+                    <div className={`relative w-full flex items-center rounded-lg border-2 transition-all ${selectedMode === 'iith'
+                        ? 'border-blue-500 bg-blue-50'
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}>
+                        <button
+                            onClick={() => handleModeChange('iith')}
+                            className={`flex-1 flex items-center gap-2 sm:gap-3 px-3 sm:px-4 py-2 sm:py-3 cursor-pointer transition-all ${selectedMode === 'iith'
+                                ? 'text-blue-700'
+                                : 'text-gray-700'
                             }`}>
-                        <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                        <div className="text-left">
-                            <div className="font-medium text-sm sm:text-base">IIT-H Forecast</div>
-                            <div className="text-xs opacity-75">High-resolution weather data</div>
-                        </div>
-                    </button>
+                            <MapPin className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                            <div className="text-left flex-1">
+                                <div className="font-medium text-sm sm:text-base">Forecast</div>
+                                <div className="text-xs opacity-75">{currentDataSource.name}</div>
+                            </div>
+                        </button>
+                        
+                        {/* Data Source Cycling Button */}
+                        <button
+                            onClick={handleDataSourceChange}
+                            className={`p-2 sm:p-3 border-l transition-all hover:bg-gray-100 ${selectedMode === 'iith'
+                                ? 'border-blue-300 text-blue-600 hover:bg-blue-100'
+                                : 'border-gray-200 text-gray-500'
+                            }`}
+                            title={`Switch to ${dataSources[(dataSources.findIndex(ds => ds.id === selectedDataSource) + 1) % dataSources.length].name}`}>
+                            <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
+                        </button>
+                    </div>
 
                     <div className="flex gap-2">
                         <button onClick={() => handleModeChange('other')}
@@ -290,35 +405,37 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                 {/* IIT-H Forecast Controls */}
                 {selectedMode === 'iith' && (
                     <>
-                        {/* View Mode Toggle */}
-                        <div className="mb-3 sm:mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">View Mode</label>
-                            <div className="p-1 bg-gray-100 rounded-lg">
-                                <div className="relative inline-flex bg-gray-100 rounded-lg w-full">
-                                    <div className={`absolute top-0 bottom-0 w-1/2 bg-white rounded-md shadow-sm transition-transform duration-200 ease-in-out ${viewMode === 'table' ? 'translate-x-full' : 'translate-x-0'}`} />
+                        {/* View Mode Toggle - Only show for non-OpenMeteo */}
+                        {selectedDataSource !== 'openmeteo' && (
+                            <div className="mb-3 sm:mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">View Mode</label>
+                                <div className="p-1 bg-gray-100 rounded-lg">
+                                    <div className="relative inline-flex bg-gray-100 rounded-lg w-full">
+                                        <div className={`absolute top-0 bottom-0 w-1/2 bg-white rounded-md shadow-sm transition-transform duration-200 ease-in-out ${viewMode === 'table' ? 'translate-x-full' : 'translate-x-0'}`} />
 
-                                    <button
-                                        onClick={() => handleViewModeChange('map')}
-                                        className={`relative flex items-center justify-center gap-2 w-1/2 px-2 py-2 sm:py-2.5 rounded-md cursor-pointer transition-colors duration-200 z-10 ${viewMode === 'map'
-                                            ? 'text-blue-600 font-medium'
-                                            : 'text-gray-600 hover:text-gray-800'
-                                            }`}>
-                                        <Map className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span className="text-xs sm:text-sm">Map</span>
-                                    </button>
+                                        <button
+                                            onClick={() => handleViewModeChange('map')}
+                                            className={`relative flex items-center justify-center gap-2 w-1/2 px-2 py-2 sm:py-2.5 rounded-md cursor-pointer transition-colors duration-200 z-10 ${viewMode === 'map'
+                                                ? 'text-blue-600 font-medium'
+                                                : 'text-gray-600 hover:text-gray-800'
+                                                }`}>
+                                            <Map className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="text-xs sm:text-sm">Map</span>
+                                        </button>
 
-                                    <button
-                                        onClick={() => handleViewModeChange('table')}
-                                        className={`relative flex items-center justify-center gap-2 w-1/2 px-2 py-2 sm:py-2.5 rounded-md cursor-pointer transition-colors duration-200 z-10 ${viewMode === 'table'
-                                            ? 'text-blue-600 font-medium'
-                                            : 'text-gray-600 hover:text-gray-800'
-                                            }`}>
-                                        <Table2 className="w-3 h-3 sm:w-4 sm:h-4" />
-                                        <span className="text-xs sm:text-sm">Table</span>
-                                    </button>
+                                        <button
+                                            onClick={() => handleViewModeChange('table')}
+                                            className={`relative flex items-center justify-center gap-2 w-1/2 px-2 py-2 sm:py-2.5 rounded-md cursor-pointer transition-colors duration-200 z-10 ${viewMode === 'table'
+                                                ? 'text-blue-600 font-medium'
+                                                : 'text-gray-600 hover:text-gray-800'
+                                                }`}>
+                                            <Table2 className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="text-xs sm:text-sm">Table</span>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        )}
 
                         {/* Variable Selection */}
                         <div className="mb-3 sm:mb-4">
@@ -327,65 +444,192 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                 value={selectedVariable}
                                 onChange={(e) => handleVariableChange(e.target.value)}
                                 className="w-full py-2 sm:py-2.5 px-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent cursor-pointer text-sm">
-                                {Object.entries(weatherVariables).map(([key, info]) => (
-                                    <option key={key} value={key}>
-                                        {info.name} ({info.unit})
-                                    </option>
-                                ))}
+                                {selectedDataSource === 'openmeteo' ? (
+                                    <option value="temperature_2m">Temperature (°C)</option>
+                                ) : (
+                                    Object.entries(weatherVariables).map(([key, info]) => (
+                                        <option key={key} value={key}>
+                                            {info.name} ({info.unit})
+                                        </option>
+                                    ))
+                                )}
                             </select>
                         </div>
 
-                        {/* Layout Controls - Responsive Grid */}
+                        {/* Layout Controls - Different for OpenMeteo */}
                         <div className="mb-3 sm:mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Layout</label>
-                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
-                                <button
-                                    onClick={() => dispatch(setShowGrid(!showGrid))}
-                                    className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
-                                    ${showGrid ? 'bg-white border-gray-300' : 'bg-gray-100 border-gray-200'}
-                                    hover:border-blue-500 focus:outline-none focus:ring-0`}>
-                                    {showGrid ? (
-                                        <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
-                                    ) : (
-                                        <EyeOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                                    )}
-                                    <Grid3x3 className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
-                                    <span className="text-xs sm:text-sm font-medium text-gray-700">Grid</span>
-                                </button>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">
+                                {selectedDataSource === 'openmeteo' ? 'Draw Polygon' : 'Layout'}
+                            </label>
+                            
+                            {selectedDataSource === 'openmeteo' ? (
+                                /* OpenMeteo Polygon Controls */
+                                <div className="space-y-3">
+                                    <div className="grid grid-cols-4 gap-2 w-full">
+                                        <button
+                                            onClick={handleDrawingModeToggle}
+                                            className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
+                                            ${drawingMode === 'draw' ? 'bg-blue-50 border-blue-300 text-blue-700' : 'bg-gray-100 border-gray-200 text-gray-700'}
+                                            hover:border-blue-500 focus:outline-none focus:ring-0`}>
+                                            <Edit3 className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="text-xs sm:text-sm font-medium">
+                                                {drawingMode === 'draw' ? 'Drawing' : 'Draw'}
+                                            </span>
+                                        </button>
 
-                                <button
-                                    onClick={() => dispatch(setShowStations(!showStations))}
-                                    className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
-                                    ${showStations ? 'bg-white border-gray-300' : 'bg-gray-100 border-gray-200'}
-                                    hover:border-blue-500 focus:outline-none focus:ring-0`}>
-                                    {showStations ? (
-                                        <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
-                                    ) : (
-                                        <EyeOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
-                                    )}
-                                    <RadioTower className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
-                                    <span className="text-xs sm:text-sm font-medium text-gray-700">AWS</span>
-                                </button>
+                                        <button
+                                            onClick={() => dispatch(setDrawingMode('edit'))}
+                                            disabled={!hasPolygonPoints}
+                                            className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
+                                            ${drawingMode === 'edit' ? 'bg-yellow-50 border-yellow-300 text-yellow-700' : 'bg-gray-100 border-gray-200 text-gray-700'}
+                                            ${!hasPolygonPoints ? 'opacity-50 cursor-not-allowed' : 'hover:border-yellow-500'} 
+                                            focus:outline-none focus:ring-0`}>
+                                            <Edit className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="text-xs sm:text-sm font-medium">Edit</span>
+                                        </button>
 
-                                <button
-                                    onClick={() => handleWindAnimationToggle(!showWindAnimation)}
-                                    className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
-                                    ${showWindAnimation ? 'bg-white border-gray-300' : 'bg-gray-100 border-gray-200'}
-                                    hover:border-blue-500 focus:outline-none focus:ring-0`}>
-                                    {showWindAnimation ? (
-                                        <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
-                                    ) : (
-                                        <EyeOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                                        <button
+                                            onClick={handleEraserMode}
+                                            disabled={!hasPolygonPoints}
+                                            className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
+                                            bg-gray-100 border-gray-200 text-gray-700 
+                                            ${!hasPolygonPoints ? 'opacity-50 cursor-not-allowed' : 'hover:border-red-500 hover:text-red-600'} 
+                                            focus:outline-none focus:ring-0`}>
+                                            <Eraser className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            <span className="text-xs sm:text-sm font-medium">Clear</span>
+                                        </button>
+
+                                        <button
+                                            onClick={handleDoneClick}
+                                            disabled={!isPolygonComplete || openMeteoLoading}
+                                            className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
+                                            ${isPolygonComplete && !openMeteoLoading 
+                                                ? 'bg-green-50 border-green-300 text-green-700 hover:bg-green-100 hover:border-green-400' 
+                                                : 'bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed opacity-50'
+                                            } focus:outline-none focus:ring-0`}>
+                                            {openMeteoLoading ? (
+                                                <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                                            ) : (
+                                                <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                                            )}
+                                            <span className="text-xs sm:text-sm font-medium">
+                                                {openMeteoLoading ? 'Loading' : 'Done'}
+                                            </span>
+                                        </button>
+                                    </div>
+                                    
+                                    {/* Point Management - Shows in edit mode */}
+                                    {drawingMode === 'edit' && polygonPoints.length > 0 && (
+                                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                                            <div className="text-sm font-medium text-yellow-800 mb-2">Edit Points</div>
+                                            <div className="space-y-1 max-h-32 overflow-y-auto">
+                                                {polygonPoints.map((point, index) => (
+                                                    <div key={index} className="flex items-center justify-between bg-white rounded px-2 py-1 text-xs">
+                                                        <span className="text-gray-600">
+                                                            Point {index + 1}: {point.lat.toFixed(4)}, {point.lng.toFixed(4)}
+                                                        </span>
+                                                        <button
+                                                            onClick={() => dispatch(removePolygonPoint(index))}
+                                                            className="text-red-500 hover:text-red-700 ml-2">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            <div className="text-xs text-yellow-600 mt-2">
+                                                Click points on map to move them, or use × to remove individual points
+                                            </div>
+                                        </div>
                                     )}
-                                    <Wind className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
-                                    <span className="text-xs sm:text-sm font-medium text-gray-700">Wind</span>
-                                </button>
-                            </div>
+                                    
+                                    {/* Polygon Stats */}
+                                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                                        <div className="bg-gray-50 p-2 rounded">
+                                            <div className="font-medium">Points</div>
+                                            <div className="text-lg font-bold text-blue-600">
+                                                {polygonPoints.length}
+                                                <span className="text-xs text-gray-500">/12</span>
+                                            </div>
+                                        </div>
+                                        <div className="bg-gray-50 p-2 rounded">
+                                            <div className="font-medium">Area</div>
+                                            <div className="text-lg font-bold text-green-600">
+                                                {polygonArea > 0 ? `${polygonArea.toFixed(1)}` : '0'}
+                                                <span className="text-xs text-gray-500">km²</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Status Messages */}
+                                    {polygonPoints.length > 0 && polygonPoints.length < 3 && (
+                                        <div className="text-xs text-amber-600 bg-amber-50 p-2 rounded">
+                                            Draw at least 3 points to create polygon
+                                        </div>
+                                    )}
+                                    
+                                    {isPolygonComplete && !openMeteoData && (
+                                        <div className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                                            ✓ Polygon complete! Click "Done" to fetch weather data.
+                                        </div>
+                                    )}
+                                    
+                                    {openMeteoData && (
+                                        <div className="text-xs text-green-600 bg-green-50 p-2 rounded">
+                                            ✅ Weather data loaded! Use time controls below to animate.
+                                        </div>
+                                    )}
+                                </div>
+                            ) : (
+                                /* Standard Layout Controls */
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 w-full">
+                                    <button
+                                        onClick={() => dispatch(setShowGrid(!showGrid))}
+                                        className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
+                                        ${showGrid ? 'bg-white border-gray-300' : 'bg-gray-100 border-gray-200'}
+                                        hover:border-blue-500 focus:outline-none focus:ring-0`}>
+                                        {showGrid ? (
+                                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                                        ) : (
+                                            <EyeOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                                        )}
+                                        <Grid3x3 className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+                                        <span className="text-xs sm:text-sm font-medium text-gray-700">Grid</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => dispatch(setShowStations(!showStations))}
+                                        className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
+                                        ${showStations ? 'bg-white border-gray-300' : 'bg-gray-100 border-gray-200'}
+                                        hover:border-blue-500 focus:outline-none focus:ring-0`}>
+                                        {showStations ? (
+                                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                                        ) : (
+                                            <EyeOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                                        )}
+                                        <RadioTower className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+                                        <span className="text-xs sm:text-sm font-medium text-gray-700">AWS</span>
+                                    </button>
+
+                                    <button
+                                        onClick={() => handleWindAnimationToggle(!showWindAnimation)}
+                                        className={`flex items-center gap-2 px-3 py-2 sm:py-2.5 border rounded-md cursor-pointer 
+                                        ${showWindAnimation ? 'bg-white border-gray-300' : 'bg-gray-100 border-gray-200'}
+                                        hover:border-blue-500 focus:outline-none focus:ring-0`}>
+                                        {showWindAnimation ? (
+                                            <Eye className="w-3 h-3 sm:w-4 sm:h-4 text-green-600" />
+                                        ) : (
+                                            <EyeOff className="w-3 h-3 sm:w-4 sm:h-4 text-gray-400" />
+                                        )}
+                                        <Wind className="w-3 h-3 sm:w-4 sm:h-4 text-blue-500" />
+                                        <span className="text-xs sm:text-sm font-medium text-gray-700">Wind</span>
+                                    </button>
+                                </div>
+                            )}
                         </div>
 
                         {/* Control Sliders */}
                         <div className="mb-3 sm:mb-4 space-y-3 sm:space-y-4">
-                            {/* Opacity Slider - Bulletproof */}
+                            {/* Opacity Slider */}
                             <div className="flex items-center gap-3">
                                 <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap min-w-16 sm:min-w-20">
                                     Opacity: {Math.round(opacity * 100)}%
@@ -398,7 +642,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                     className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-gray-200 accent-blue-500" />
                             </div>
 
-                            {/* FIXED: Animation Speed Slider - now uses speed multiplier */}
+                            {/* Animation Speed Slider */}
                             <div className="flex items-center gap-3">
                                 <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap min-w-16 sm:min-w-20">
                                     Speed: {speedMultiplier.toFixed(1)}x
@@ -413,16 +657,15 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                         </div>
 
                         {/* Time Controls with integrated timestamp info */}
-                        {batchInfo && (
+                        {(batchInfo || (selectedDataSource === 'openmeteo' && openMeteoData)) && (
                             <div className="pt-3 sm:pt-4">
-
                                 <div className="flex flex-row items-start sm:items-center gap-3 mb-3 sm:mb-4">
                                     {/* Control Buttons */}
                                     <div className="flex items-center gap-2">
                                         {/* Back Button */}
                                         <button
-                                            onClick={() => handleTimeIndexChange(Math.max(0, currentTimeIndex - 1))}
-                                            disabled={currentTimeIndex === 0}
+                                            onClick={() => handleTimeIndexChange(Math.max(0, getCurrentTimeIndex() - 1))}
+                                            disabled={getCurrentTimeIndex() === 0}
                                             className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer shadow-sm">
                                             <SkipBack className="w-3 h-3 sm:w-4 sm:h-4" />
                                         </button>
@@ -436,7 +679,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
 
                                         {/* Forward Button */}
                                         <button
-                                            onClick={() => handleTimeIndexChange(currentTimeIndex + 1)}
+                                            onClick={() => handleTimeIndexChange(getCurrentTimeIndex() + 1)}
                                             className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer shadow-sm">
                                             <SkipForward className="w-3 h-3 sm:w-4 sm:h-4" />
                                         </button>
@@ -444,7 +687,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                         {/* Reset Button */}
                                         <button
                                             onClick={handleReset}
-                                            disabled={currentTimeIndex === 0}
+                                            disabled={getCurrentTimeIndex() === 0}
                                             className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed cursor-pointer shadow-sm">
                                             <RotateCcw className="w-3 h-3 sm:w-4 sm:h-4" />
                                         </button>
@@ -453,16 +696,15 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                     {/* Timestamp Display */}
                                     <div className="flex items-center gap-3 px-4 py-2 bg-blue-50 border border-blue-200 rounded-lg">
                                         <div className="text-sm font-semibold text-blue-700">
-                                            {currentTimestamp ? formatTimestampDisplay(currentTimestamp) : 'Loading...'}
+                                            {getCurrentTimestamp() ? formatTimestampDisplay(getCurrentTimestamp()) : 'Loading...'}
                                         </div>
                                         <div className="text-xs text-blue-500">
-                                            {currentTimeIndex + 1} / {timeRangeInfo?.totalTimestamps || 0}
+                                            {getCurrentTimeIndex() + 1} / {totalTimeIndices + 1}
                                         </div>
                                     </div>
                                 </div>
 
-
-                                {/* FIXED: Simple slider - works during loading */}
+                                {/* Time Slider */}
                                 <div className="w-full mb-4 sm:mb-6">
                                     <style jsx>{`
                                         .smart-slider::-webkit-slider-thumb {
@@ -499,7 +741,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                             type="range"
                                             min={0}
                                             max={totalTimeIndices}
-                                            value={currentTimeIndex}
+                                            value={getCurrentTimeIndex()}
                                             onChange={(e) => {
                                                 const newValue = parseInt(e.target.value);
                                                 if (newValue <= maxAvailableTimeIndex) handleTimeIndexChange(newValue);
@@ -523,22 +765,41 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
 
                                     <div className="flex justify-between text-xs text-gray-500 mt-1">
                                         <span className="hidden sm:inline">
-                                            {timeRangeInfo ? formatTimestampDisplay(timeRangeInfo.startDate) : 'Start'}
+                                            {selectedDataSource === 'openmeteo' 
+                                                ? (openMeteoData?.hourly?.time?.[0] ? formatTimestampDisplay(new Date(openMeteoData.hourly.time[0])) : 'Start')
+                                                : (timeRangeInfo ? formatTimestampDisplay(timeRangeInfo.startDate) : 'Start')
+                                            }
                                         </span>
-                                        <span className="sm:hidden text-xs">
-                                            Start
-                                        </span>
+                                        <span className="sm:hidden text-xs">Start</span>
                                         <span className="text-blue-600 font-medium text-xs">
-                                            {timeIndices.length}/{timeRangeInfo?.totalTimestamps || 0} loaded
+                                            {selectedDataSource === 'openmeteo' 
+                                                ? `${openMeteoData?.hourly?.time?.length || 0}/${openMeteoData?.hourly?.time?.length || 0} loaded`
+                                                : `${currentTimeIndices.length}/${timeRangeInfo?.totalTimestamps || 0} loaded`
+                                            }
                                         </span>
                                         <span className="hidden sm:inline">
-                                            {timeRangeInfo ? formatTimestampDisplay(timeRangeInfo.endDate) : 'End'}
+                                            {selectedDataSource === 'openmeteo' 
+                                                ? (openMeteoData?.hourly?.time ? formatTimestampDisplay(new Date(openMeteoData.hourly.time[openMeteoData.hourly.time.length - 1])) : 'End')
+                                                : (timeRangeInfo ? formatTimestampDisplay(timeRangeInfo.endDate) : 'End')
+                                            }
                                         </span>
-                                        <span className="sm:hidden text-xs">
-                                            End
-                                        </span>
+                                        <span className="sm:hidden text-xs">End</span>
                                     </div>
                                 </div>
+
+                                {/* OpenMeteo Instructions */}
+                                {selectedDataSource === 'openmeteo' && polygonPoints.length === 0 && !openMeteoLoading && (
+                                    <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                        <div className="text-sm text-amber-800">
+                                            <div className="font-medium mb-1">Draw a polygon to get started:</div>
+                                            <div className="text-xs">
+                                                1. Click "Draw" button above<br/>
+                                                2. Click on map to add points (3-12 points)<br/>
+                                                3. Click "Done" to fetch weather data
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </>

@@ -4,6 +4,7 @@ import weatherReducer from './slices/weatherSlice';
 import uiReducer from './slices/uiSlice';
 import dataTableReducer from './slices/dataTableSlice'
 import zomatoReducer from './slices/zomatoSlice';
+import openMeteoReducer from './slices/openMeteoSlice';
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     ui: uiReducer,
     dataTable: dataTableReducer,
     zomato: zomatoReducer,
+    openMeteo: openMeteoReducer,
   },
 
   //   // Enable Redux DevTools in development
