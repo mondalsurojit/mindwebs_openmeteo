@@ -98,9 +98,24 @@ This integration is planned for future deployment.
 ![Preview 5](./screenshots/5.png)
 
 ---
+
 ## 👨‍💻 Author
 
 **Surojit Mondal**  
 Email: [surojitmondalit@gmail.com](mailto:surojitmondalit@gmail.com)  
 GitHub: [https://github.com/mondalsurojit](https://github.com/mondalsurojit)  
 Portfolio: [https://surojit.netlify.app](https://surojit.netlify.app)
+
+---
+
+### ✅ Submission Checklist
+
+- [x] Deployed URL using Vercel / Netlify / etc. attached in Email  
+- [x] GitHub repository attached in email  
+- [x] Email should contain additional information as requested in the first section along with the latest resume attached as a PDF file only
+
+**GitHub repository Readme should contain:**  
+- [x] Setup and run instructions  
+- [x] Summary of libraries used  
+- [x] Any remarks of design / development (if applicable)  
+- [x] Screenshots of the application (optional) 

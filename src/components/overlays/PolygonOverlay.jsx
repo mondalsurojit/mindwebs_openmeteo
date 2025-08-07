@@ -9,7 +9,7 @@ import { interpolateColor } from '../../hooks/helper';
 
 import {
     setPolygonPoints, addPolygonPoint, setDrawingMode, fetchOpenMeteoData,
-    selectDrawingMode, selectPolygonPoints, selectOpenMeteoData, 
+    selectDrawingMode, selectPolygonPoints, selectOpenMeteoData,
     selectOpenMeteoCurrentTimeIndex, selectOpenMeteoOpacity, selectShowPolygon,
     selectShouldFetchData, selectOpenMeteoCurrentData, selectHasValidData,
     selectOpenMeteoIsPlaying, triggerDataFetch, editPolygonPoint
@@ -19,25 +19,25 @@ import {
 const pointInPolygon = (point, polygon) => {
     const { lat, lng } = point;
     let inside = false;
-    
+
     for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
         const xi = polygon[i].lat;
         const yi = polygon[i].lng;
         const xj = polygon[j].lat;
         const yj = polygon[j].lng;
-        
+
         if (((yi > lng) !== (yj > lng)) && (lat < (xj - xi) * (lng - yi) / (yj - yi) + xi)) {
             inside = !inside;
         }
     }
-    
+
     return inside;
 };
 
 const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => {
     const map = useMap();
     const dispatch = useDispatch();
-    
+
     // Refs for managing overlays and interactions
     const polygonLayerRef = useRef(null);
     const pointLayersRef = useRef([]);
@@ -45,7 +45,7 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
     const canvasRef = useRef(null);
     const animationFrameRef = useRef(null);
     const isUpdatingRef = useRef(false);
-    
+
     // Redux state
     const drawingMode = useSelector(selectDrawingMode);
     const polygonPoints = useSelector(selectPolygonPoints);
@@ -56,7 +56,7 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
     // Helper function to calculate polygon area
     const calculatePolygonArea = useCallback((points) => {
         if (points.length < 3) return 0;
-        
+
         let area = 0;
         for (let i = 0; i < points.length; i++) {
             const j = (i + 1) % points.length;
@@ -64,7 +64,7 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
             area -= points[j].lat * points[i].lng;
         }
         area = Math.abs(area) / 2;
-        
+
         // Convert to km² (rough approximation)
         return area * 12321;
     }, []);
@@ -78,11 +78,11 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
 
     // Get current temperature data for the timestamp
     const currentTemperatureData = useMemo(() => {
-        if (!weatherData?.hourly?.temperature_2m || 
+        if (!weatherData?.hourly?.temperature_2m ||
             currentTimeIndex >= weatherData.hourly.temperature_2m.length) {
             return null;
         }
-        
+
         return {
             temperature: weatherData.hourly.temperature_2m[currentTimeIndex],
             relative_humidity_2m: weatherData.hourly.relative_humidity_2m?.[currentTimeIndex],
@@ -96,7 +96,7 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
     // Generate temperature field based on actual OpenMeteo data for current timestamp
     const temperatureField = useMemo(() => {
         if (polygonPoints.length < 3 || !currentTemperatureData) return [];
-        
+
         // Find bounding box
         const bounds = polygonPoints.reduce((acc, point) => ({
             minLat: Math.min(acc.minLat, point.lat),
@@ -109,17 +109,17 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
             minLng: Infinity,
             maxLng: -Infinity
         });
-        
+
         // Dynamic resolution based on zoom level
         const currentZoom = map ? map.getZoom() : 10;
         const resolution = Math.max(0.001, 0.02 / Math.pow(2, currentZoom - 8));
-        
+
         const temperatureField = [];
         const baseTemp = currentTemperatureData.temperature || 20;
-        
+
         // SIMPLIFIED temperature variations - KISS principle
         const tempVariations = [];
-        
+
         for (let lat = bounds.minLat; lat <= bounds.maxLat; lat += resolution) {
             for (let lng = bounds.minLng; lng <= bounds.maxLng; lng += resolution) {
                 if (pointInPolygon({ lat, lng }, polygonPoints)) {
@@ -127,33 +127,68 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                     const variation1 = Math.sin((lat * 100) + (currentTimeIndex * 0.5)) * 2;
                     const variation2 = Math.cos((lng * 80) + (currentTimeIndex * 0.7)) * 1.5;
                     const variation3 = Math.sin((lat + lng) * 60 + (currentTimeIndex * 0.3)) * 1;
-                    
+
                     const finalTemp = baseTemp + variation1 + variation2 + variation3;
-                    
+
                     temperatureField.push({
                         lat,
                         lng,
                         temperature: finalTemp
                     });
-                    
+
                     tempVariations.push(finalTemp);
                 }
             }
         }
-        
+
         // Simple min/max calculation
         const minTemp = tempVariations.length > 0 ? Math.min(...tempVariations) : baseTemp;
         const maxTemp = tempVariations.length > 0 ? Math.max(...tempVariations) : baseTemp;
-        
+
         console.log(`🌡️ Simple calc - Timestamp ${currentTimeIndex}: ${temperatureField.length} points, range: ${minTemp.toFixed(1)}°C - ${maxTemp.toFixed(1)}°C`);
-        
-        return { 
-            field: temperatureField, 
-            minValue: minTemp, 
+
+        return {
+            field: temperatureField,
+            minValue: minTemp,
             maxValue: maxTemp,
             baseTemp: baseTemp
         };
     }, [polygonPoints, currentTemperatureData, currentTimeIndex, map]);
+
+    // KISS: Simple function to clear ALL overlays
+    const clearAllOverlays = useCallback(() => {
+        if (!map) return;
+
+        // Clear weather layer
+        if (weatherLayerRef.current) {
+            try {
+                map.removeLayer(weatherLayerRef.current);
+            } catch (e) {
+                console.warn('Error removing weather layer:', e);
+            }
+            weatherLayerRef.current = null;
+        }
+
+        // Clear polygon layer
+        if (polygonLayerRef.current) {
+            try {
+                map.removeLayer(polygonLayerRef.current);
+            } catch (e) {
+                console.warn('Error removing polygon layer:', e);
+            }
+            polygonLayerRef.current = null;
+        }
+
+        // Clear point layers
+        pointLayersRef.current.forEach(layer => {
+            try {
+                map.removeLayer(layer);
+            } catch (e) {
+                console.warn('Error removing layer:', e);
+            }
+        });
+        pointLayersRef.current = [];
+    }, [map]);
 
     // Create weather canvas using actual temperature data like GridOverlay
     const createWeatherCanvas = useCallback(() => {
@@ -163,39 +198,39 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
 
         const size = map.getSize();
         const currentZoom = map.getZoom();
-        
+
         // Create or reuse canvas
         let canvas = canvasRef.current;
         if (!canvas) {
             canvas = document.createElement('canvas');
             canvasRef.current = canvas;
         }
-        
+
         // Get existing canvas context and clear
         canvas.width = size.x;
         canvas.height = size.y;
         const ctx = canvas.getContext('2d');
         ctx.clearRect(0, 0, size.x, size.y);
-        
+
         // Set global composite operation for better blending like GridOverlay
         ctx.globalCompositeOperation = 'source-over';
-        
+
         let renderedCells = 0;
-        
+
         // Use calculated min/max from temperature field for proper color scaling
         const { minValue, maxValue, field } = temperatureField;
-        
+
         // Calculate cell size for continuous coverage
         const cellSize = Math.max(2, Math.pow(2, currentZoom - 6));
-        
+
         // Render each temperature point exactly like GridOverlay
         field.forEach((point) => {
             const mapPoint = map.latLngToContainerPoint([point.lat, point.lng]);
-            
+
             // Check if point is in viewport
-            if (mapPoint.x >= -cellSize && mapPoint.x <= size.x + cellSize && 
+            if (mapPoint.x >= -cellSize && mapPoint.x <= size.x + cellSize &&
                 mapPoint.y >= -cellSize && mapPoint.y <= size.y + cellSize) {
-                
+
                 // Apply opacity and color EXACTLY like GridOverlay does
                 ctx.fillStyle = interpolateColor(point.temperature, minValue, maxValue, 'T2');
                 ctx.globalAlpha = opacity;
@@ -205,14 +240,14 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                     cellSize,
                     cellSize
                 );
-                
+
                 renderedCells++;
             }
         });
-        
+
         // Reset alpha
         ctx.globalAlpha = 1;
-        
+
         return {
             canvas,
             imageUrl: canvas.toDataURL(),
@@ -226,9 +261,22 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
     // Update weather visualization with proper animation support
     const updateWeatherVisualization = useCallback(() => {
         if (!map || isUpdatingRef.current) return;
-        
+
+        // KISS: If no polygon points, just clear everything
+        if (polygonPoints.length === 0) {
+            if (weatherLayerRef.current) {
+                try {
+                    map.removeLayer(weatherLayerRef.current);
+                } catch (e) {
+                    console.warn('Error removing weather layer:', e);
+                }
+                weatherLayerRef.current = null;
+            }
+            return;
+        }
+
         isUpdatingRef.current = true;
-        
+
         try {
             // Remove existing weather layer
             if (weatherLayerRef.current) {
@@ -239,7 +287,7 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                 }
                 weatherLayerRef.current = null;
             }
-            
+
             // Create new weather visualization
             const result = createWeatherCanvas();
             if (result && result.renderedCells > 0) {
@@ -249,10 +297,10 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                     interactive: false,
                     pane: 'overlayPane'
                 });
-                
+
                 overlay.addTo(map);
                 weatherLayerRef.current = overlay;
-                
+
                 console.log(`🎨 Updated weather visualization: ${result.renderedCells} cells, range: ${result.minValue.toFixed(1)}°C - ${result.maxValue.toFixed(1)}°C`);
             }
         } catch (error) {
@@ -260,36 +308,20 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
         } finally {
             isUpdatingRef.current = false;
         }
-    }, [map, createWeatherCanvas]);
+    }, [map, createWeatherCanvas, polygonPoints.length]);
 
     // Force immediate update of polygon display
     const forceUpdatePolygonDisplay = useCallback(() => {
         if (!map) return;
-        
-        // Remove existing polygon layer
-        if (polygonLayerRef.current) {
-            try {
-                map.removeLayer(polygonLayerRef.current);
-            } catch (e) {
-                console.warn('Error removing polygon layer:', e);
-            }
-            polygonLayerRef.current = null;
-        }
-        
-        // Remove existing point layers
-        pointLayersRef.current.forEach(layer => {
-            try {
-                map.removeLayer(layer);
-            } catch (e) {
-                console.warn('Error removing layer:', e);
-            }
-        });
-        pointLayersRef.current = [];
-        
+
+        // KISS: Clear everything first
+        clearAllOverlays();
+
+        // If no points, we're done
         if (polygonPoints.length === 0) {
             return;
         }
-        
+
         // Create point markers
         polygonPoints.forEach((point, index) => {
             const marker = L.circleMarker([point.lat, point.lng], {
@@ -300,21 +332,21 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                 opacity: 1,
                 fillOpacity: 0.8
             });
-            
+
             marker.bindTooltip(`Point ${index + 1}`, {
                 permanent: false,
                 direction: 'top',
                 offset: [0, -10]
             });
-            
+
             marker.addTo(map);
             pointLayersRef.current.push(marker);
         });
-        
+
         // Create polygon if we have enough points
         if (polygonPoints.length >= 3) {
             const latlngs = polygonPoints.map(p => [p.lat, p.lng]);
-            
+
             const polygon = L.polygon(latlngs, {
                 color: '#3b82f6',
                 weight: 3,
@@ -323,14 +355,14 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                 fillOpacity: 0.15,
                 dashArray: drawingMode === 'draw' ? '5, 5' : null
             });
-            
+
             polygon.addTo(map);
             polygonLayerRef.current = polygon;
-            
+
             // Add area display
             const center = polygon.getBounds().getCenter();
             const area = calculatePolygonArea(polygonPoints);
-            
+
             const areaMarker = L.marker(center, {
                 icon: L.divIcon({
                     className: 'polygon-area-label',
@@ -351,16 +383,16 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                     iconAnchor: [45, 17]
                 })
             });
-            
+
             areaMarker.addTo(map);
             pointLayersRef.current.push(areaMarker);
         }
-    }, [map, polygonPoints, drawingMode, calculatePolygonArea]);
+    }, [map, polygonPoints, drawingMode, calculatePolygonArea, clearAllOverlays]);
 
     // Enhanced map click handler
     useEffect(() => {
         if (!map) return;
-        
+
         const handleMapClick = (e) => {
             if (drawingMode === 'draw') {
                 if (polygonPoints.length < 12) {
@@ -368,22 +400,22 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                         lat: e.latlng.lat,
                         lng: e.latlng.lng
                     };
-                    
+
                     dispatch(addPolygonPoint(newPoint));
-                    
+
                     if (polygonPoints.length + 1 >= 12) {
                         dispatch(setDrawingMode('view'));
                     }
-                } 
+                }
             } else if (drawingMode === 'edit') {
                 // Check if click is near an existing point for editing
                 const clickThreshold = 0.01;
                 let nearestPointIndex = -1;
                 let minDistance = Infinity;
-                
+
                 polygonPoints.forEach((point, index) => {
                     const distance = Math.sqrt(
-                        Math.pow(point.lat - e.latlng.lat, 2) + 
+                        Math.pow(point.lat - e.latlng.lat, 2) +
                         Math.pow(point.lng - e.latlng.lng, 2)
                     );
                     if (distance < clickThreshold && distance < minDistance) {
@@ -391,7 +423,7 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                         nearestPointIndex = index;
                     }
                 });
-                
+
                 if (nearestPointIndex >= 0) {
                     dispatch(editPolygonPoint({
                         index: nearestPointIndex,
@@ -403,7 +435,7 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                 }
             }
         };
-        
+
         const handleMapMouseMove = (e) => {
             // Update cursor based on drawing mode
             if (drawingMode === 'draw') {
@@ -411,31 +443,31 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
             } else if (drawingMode === 'edit') {
                 const clickThreshold = 0.01;
                 let nearPoint = false;
-                
+
                 polygonPoints.forEach((point) => {
                     const distance = Math.sqrt(
-                        Math.pow(point.lat - e.latlng.lat, 2) + 
+                        Math.pow(point.lat - e.latlng.lat, 2) +
                         Math.pow(point.lng - e.latlng.lng, 2)
                     );
                     if (distance < clickThreshold) {
                         nearPoint = true;
                     }
                 });
-                
+
                 map.getContainer().style.cursor = nearPoint ? 'move' : 'default';
             } else {
                 map.getContainer().style.cursor = '';
             }
-            
+
             // Handle hover for weather data
             if (hasValidData && currentTemperatureData && onHover && temperatureField.field) {
                 const { lat, lng } = e.latlng;
-                
+
                 if (polygonPoints.length >= 3 && pointInPolygon({ lat, lng }, polygonPoints)) {
                     // Find nearest temperature point for accurate hover data
                     let nearestTemp = null;
                     let minDistance = Infinity;
-                    
+
                     temperatureField.field.forEach(point => {
                         const distance = Math.sqrt(
                             Math.pow(point.lat - lat, 2) + Math.pow(point.lng - lng, 2)
@@ -445,7 +477,7 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                             nearestTemp = point.temperature;
                         }
                     });
-                    
+
                     if (nearestTemp !== null) {
                         onHover({
                             position: e.containerPoint,
@@ -469,16 +501,16 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                 }
             }
         };
-        
+
         const handleMapMouseOut = () => {
             map.getContainer().style.cursor = '';
             if (onHover) onHover(null);
         };
-        
+
         map.on('click', handleMapClick);
         map.on('mousemove', handleMapMouseMove);
         map.on('mouseout', handleMapMouseOut);
-        
+
         return () => {
             map.off('click', handleMapClick);
             map.off('mousemove', handleMapMouseMove);
@@ -498,28 +530,28 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
-            
+
             animationFrameRef.current = requestAnimationFrame(() => {
                 updateWeatherVisualization();
             });
         }
-        
+
         return () => {
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
         };
-    }, [hasValidData, currentTimeIndex, temperatureField, opacity, updateWeatherVisualization, map]); // Added opacity as dependency
+    }, [hasValidData, currentTimeIndex, temperatureField, opacity, updateWeatherVisualization, map]);
 
     // Handle map events
     useEffect(() => {
         if (!map) return;
-        
+
         const handleMapChange = () => {
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
-            
+
             animationFrameRef.current = requestAnimationFrame(() => {
                 forceUpdatePolygonDisplay();
                 if (hasValidData) {
@@ -527,10 +559,10 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
                 }
             });
         };
-        
+
         map.on('moveend', handleMapChange);
         map.on('zoomend', handleMapChange);
-        
+
         return () => {
             map.off('moveend', handleMapChange);
             map.off('zoomend', handleMapChange);
@@ -543,34 +575,9 @@ const PolygonOverlay = ({ onHover, currentTimeIndex, weatherData, opacity }) => 
             if (animationFrameRef.current) {
                 cancelAnimationFrame(animationFrameRef.current);
             }
-            
-            if (map) {
-                if (polygonLayerRef.current) {
-                    try {
-                        map.removeLayer(polygonLayerRef.current);
-                    } catch (e) {
-                        console.warn('Error removing polygon layer:', e);
-                    }
-                }
-                if (weatherLayerRef.current) {
-                    try {
-                        map.removeLayer(weatherLayerRef.current);
-                    } catch (e) {
-                        console.warn('Error removing weather layer:', e);
-                    }
-                }
-                pointLayersRef.current.forEach(layer => {
-                    try {
-                        map.removeLayer(layer);
-                    } catch (e) {
-                        console.warn('Error removing point layer:', e);
-                    }
-                });
-                
-                map.getContainer().style.cursor = '';
-            }
+            clearAllOverlays();
         };
-    }, [map]);
+    }, [clearAllOverlays]);
 
     return null;
 };

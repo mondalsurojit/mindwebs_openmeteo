@@ -20,13 +20,13 @@ import {
 import {
     setIsPlaying, setHoverData, clearHoverData, selectIsPlaying,
     selectHoverData, selectMapCenter, selectMapZoom, selectShowGrid,
-    setMapZoom, selectSelectedDataSource
+    setMapZoom, selectSelectedDataSource, selectOpacity
 } from '../redux/slices/uiSlice';
 
 import {
     selectDrawingMode, selectPolygonPoints, selectOpenMeteoData,
     selectHasValidData as selectOpenMeteoHasValidData, selectOpenMeteoIsPlaying,
-    selectOpenMeteoCurrentTimeIndex, selectOpenMeteoOpacity
+    selectOpenMeteoCurrentTimeIndex
 } from '../redux/slices/openMeteoSlice';
 
 // Fix for default markers in React Leaflet
@@ -151,7 +151,8 @@ const CustomMap = () => { // Remove selectedDataSource prop - get from Redux
     const mapCenter = useSelector(selectMapCenter);
     const mapZoom = useSelector(selectMapZoom);
     const showGrids = useSelector(selectShowGrid);
-    const selectedDataSource = useSelector(selectSelectedDataSource); // Get from Redux
+    const selectedDataSource = useSelector(selectSelectedDataSource);
+    const opacity = useSelector(selectOpacity); // Add opacity from Redux // Get from Redux
 
     // OpenMeteo state from Redux
     const drawingMode = useSelector(selectDrawingMode);
@@ -160,7 +161,6 @@ const CustomMap = () => { // Remove selectedDataSource prop - get from Redux
     const openMeteoHasValidData = useSelector(selectOpenMeteoHasValidData);
     const openMeteoIsPlaying = useSelector(selectOpenMeteoIsPlaying);
     const openMeteoCurrentTimeIndex = useSelector(selectOpenMeteoCurrentTimeIndex);
-    const openMeteoOpacity = useSelector(selectOpenMeteoOpacity);
 
     const handleZoomChange = useCallback((zoom) => {
         dispatch(setMapZoom(zoom));
@@ -306,7 +306,7 @@ const CustomMap = () => { // Remove selectedDataSource prop - get from Redux
                             selectedDataSource={selectedDataSource}
                             currentTimeIndex={openMeteoCurrentTimeIndex}
                             weatherData={openMeteoData}
-                            opacity={openMeteoOpacity}
+                            opacity={opacity}
                         />
                     )}
 
