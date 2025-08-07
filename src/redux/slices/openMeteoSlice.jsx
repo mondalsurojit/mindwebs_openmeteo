@@ -129,7 +129,7 @@ const initialState = {
     isPlaying: false,
     
     // UI state
-    opacity: 0.7,
+    opacity: 0.5, // Changed default to 50%
     showPolygon: true,
     
     // Cache
@@ -156,6 +156,7 @@ const openMeteoSlice = createSlice({
                 state.weatherData = null;
                 state.currentTimeIndex = 0;
                 state.error = null;
+                state.isPlaying = false; // Stop animation when clearing polygon
             }
         },
 
@@ -169,6 +170,7 @@ const openMeteoSlice = createSlice({
                 if (state.weatherData) {
                     state.weatherData = null;
                     state.currentTimeIndex = 0;
+                    state.isPlaying = false; // Stop animation when modifying polygon
                 }
             }
         },
@@ -179,6 +181,7 @@ const openMeteoSlice = createSlice({
             if (state.weatherData) {
                 state.weatherData = null;
                 state.currentTimeIndex = 0;
+                state.isPlaying = false; // Stop animation when modifying polygon
             }
         },
 
@@ -192,6 +195,7 @@ const openMeteoSlice = createSlice({
             state.lastFetchedPolygon = null;
             state.fetchedAt = null;
             state.loading = false;
+            state.isPlaying = false; // Stop animation when clearing all data
         },
 
         // Animation actions
@@ -249,6 +253,11 @@ const openMeteoSlice = createSlice({
                 if (state.weatherData) {
                     state.weatherData = null;
                     state.currentTimeIndex = 0;
+                    state.isPlaying = false; // Stop animation when modifying polygon
+                }
+                // Stop animation if polygon becomes incomplete
+                if (state.polygonPoints.length < 3) {
+                    state.isPlaying = false;
                 }
             }
         },
@@ -262,6 +271,7 @@ const openMeteoSlice = createSlice({
                 if (state.weatherData) {
                     state.weatherData = null;
                     state.currentTimeIndex = 0;
+                    state.isPlaying = false; // Stop animation when modifying polygon
                 }
             }
         }
@@ -274,6 +284,7 @@ const openMeteoSlice = createSlice({
                 state.loading = true;
                 state.error = null;
                 state.shouldFetchData = false; // Reset trigger
+                state.isPlaying = false; // Stop animation while loading
                 console.log('🔄 Fetching OpenMeteo data...');
             })
 
@@ -285,6 +296,7 @@ const openMeteoSlice = createSlice({
                 state.error = null;
                 state.lastFetchedPolygon = [...state.polygonPoints];
                 state.fetchedAt = action.payload.fetchedAt;
+                // Animation will be controlled from UI components
                 
                 console.log(`✅ OpenMeteo data loaded successfully. 
                     Time points: ${action.payload.hourly?.time?.length || 0},
@@ -296,6 +308,7 @@ const openMeteoSlice = createSlice({
                 state.loading = false;
                 state.error = action.payload || 'Failed to fetch OpenMeteo data';
                 state.shouldFetchData = false; // Reset trigger
+                state.isPlaying = false; // Stop animation on error
                 console.error('❌ Failed to fetch OpenMeteo data:', action.payload);
             });
     }
@@ -321,7 +334,7 @@ export const selectOpenMeteoError = (state) => state.openMeteo?.error || null;
 export const selectOpenMeteoCurrentTimeIndex = (state) => state.openMeteo?.currentTimeIndex || 0;
 export const selectOpenMeteoAnimationSpeed = (state) => state.openMeteo?.animationSpeed || 1000;
 export const selectOpenMeteoIsPlaying = (state) => state.openMeteo?.isPlaying || false;
-export const selectOpenMeteoOpacity = (state) => state.openMeteo?.opacity || 0.7;
+export const selectOpenMeteoOpacity = (state) => state.openMeteo?.opacity || 0.5;
 export const selectShowPolygon = (state) => state.openMeteo?.showPolygon || true;
 export const selectShouldFetchData = (state) => state.openMeteo?.shouldFetchData || false;
 

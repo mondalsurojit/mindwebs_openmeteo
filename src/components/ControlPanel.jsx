@@ -13,7 +13,7 @@ import {
 import {
     setIsPlaying, setOpacity, setShowWindAnimation, selectIsPlaying, selectOpacity,
     selectShowWindAnimation, setShowStations, setShowGrid, setControlPanelExpanded, selectIsControlPanelExpanded,
-    setShowDataTable, selectShowDataTable, selectShowGrid, selectShowStations
+    setShowDataTable, selectShowDataTable, selectShowGrid, selectShowStations, setSelectedDataSource, selectSelectedDataSource
 } from '../redux/slices/uiSlice';
 
 import {
@@ -26,7 +26,9 @@ import {
     selectPolygonPoints, selectPolygonArea, selectOpenMeteoData, selectOpenMeteoLoading,
     selectOpenMeteoCurrentTimeIndex, setOpenMeteoCurrentTimeIndex, selectOpenMeteoTimeIndices,
     advanceOpenMeteoTime, setOpenMeteoAnimationSpeed, selectOpenMeteoAnimationSpeed,
-    triggerDataFetch, removePolygonPoint, editPolygonPoint
+    triggerDataFetch, removePolygonPoint, editPolygonPoint, setOpenMeteoIsPlaying, 
+    selectOpenMeteoIsPlaying, selectHasValidData as selectOpenMeteoHasValidData,
+    setOpenMeteoOpacity, selectOpenMeteoOpacity
 } from '../redux/slices/openMeteoSlice';
 
 const ControlPanel = ({ viewMode, handleViewModeChange }) => {
@@ -49,6 +51,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     const isControlPanelExpanded = useSelector(selectIsControlPanelExpanded);
     const showGrid = useSelector(selectShowGrid);
     const showStations = useSelector(selectShowStations);
+    const selectedDataSource = useSelector(selectSelectedDataSource); // Get from Redux instead of local state
 
     // OpenMeteo state from Redux
     const drawingMode = useSelector(selectDrawingMode);
@@ -59,11 +62,16 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     const openMeteoCurrentTimeIndex = useSelector(selectOpenMeteoCurrentTimeIndex);
     const openMeteoTimeIndices = useSelector(selectOpenMeteoTimeIndices);
     const openMeteoAnimationSpeed = useSelector(selectOpenMeteoAnimationSpeed);
+    const openMeteoIsPlaying = useSelector(selectOpenMeteoIsPlaying);
+    const openMeteoHasValidData = useSelector(selectOpenMeteoHasValidData);
+    const openMeteoOpacity = useSelector(selectOpenMeteoOpacity);
 
     // Mode state - default to IIT-H Forecast
     const [selectedMode, setSelectedMode] = React.useState('iith');
-    const [selectedDataSource, setSelectedDataSource] = React.useState('openmeteo'); // New state for data source
-    const [previousIITHSettings, setPreviousIITHSettings] = React.useState({
+    // Remove local selectedDataSource state - now using Redux
+    
+    // Store previous WRF settings to restore when switching back
+    const [previousWRFSettings, setPreviousWRFSettings] = React.useState({
         showGrid: false,
         showWindAnimation: false,
         showStations: false
@@ -104,6 +112,13 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         return animationSpeed;
     };
 
+    const getCurrentIsPlaying = () => {
+        if (selectedDataSource === 'openmeteo') {
+            return openMeteoIsPlaying;
+        }
+        return isPlaying;
+    };
+
     // Get min and max available time indices
     const currentTimeIndices = getCurrentTimeIndices();
     const [minTimeIndex, maxTimeIndex] = currentTimeIndices.length > 0
@@ -112,7 +127,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     // Get total possible time indices from metadata
     const totalTimeIndices = selectedDataSource === 'openmeteo' 
         ? (openMeteoData?.hourly?.time?.length || 0) - 1
-        : (timeRangeInfo ? timeRangeInfo.totalTimestamps - 1 : maxTimeIndex);
+        : (timeRangeInfo ? timeRangeInfo.totalTimestamps - 1 : maxTimeIndices);
 
     // Calculate loaded percentage for slider
     const loadedPercentage = selectedDataSource === 'openmeteo'
@@ -122,10 +137,18 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     // Simple max available calculation
     const maxAvailableTimeIndex = currentTimeIndices.length > 0 ? Math.max(...currentTimeIndices) : 0;
 
+    // Get current opacity based on data source
+    const getCurrentOpacity = () => {
+        if (selectedDataSource === 'openmeteo') {
+            return openMeteoOpacity;
+        }
+        return opacity;
+    };
+
     // Convert animation speed (interval) to speed multiplier for display and control
     const speedMultiplier = 1000 / getCurrentAnimationSpeed();
 
-    // Consolidated animation timer with proper cleanup
+    // Animation timer with proper cleanup
     const animationTimer = React.useRef(null);
 
     const startAnimation = React.useCallback(() => {
@@ -150,32 +173,53 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         }
     }, []);
 
-    // Animation control effect
+    // Animation control effect - Fixed to use proper playing state
     React.useEffect(() => {
-        if (isPlaying && selectedMode === 'iith') {
+        const currentIsPlaying = getCurrentIsPlaying();
+        const hasValidData = selectedDataSource === 'openmeteo' 
+            ? openMeteoHasValidData 
+            : (timeIndices.length > 0);
+
+        if (currentIsPlaying && selectedMode === 'iith' && hasValidData) {
             startAnimation();
         } else {
             stopAnimation();
         }
 
         return stopAnimation;
-    }, [isPlaying, selectedMode, getCurrentAnimationSpeed, startAnimation, stopAnimation]);
+    }, [getCurrentIsPlaying, selectedMode, selectedDataSource, openMeteoHasValidData, timeIndices.length, startAnimation, stopAnimation, getCurrentOpacity]); // Added getCurrentOpacity to trigger re-render
 
-    // Handle data source cycling
+    // Handle data source cycling with proper settings preservation
     const handleDataSourceChange = () => {
         const currentIndex = dataSources.findIndex(ds => ds.id === selectedDataSource);
         const nextIndex = (currentIndex + 1) % dataSources.length;
         const nextDataSource = dataSources[nextIndex];
         
-        setSelectedDataSource(nextDataSource.id);
-        
-        // Clear any existing data when switching
-        if (nextDataSource.id === 'openmeteo') {
-            dispatch(clearPolygonData());
-        } else {
-            // Clear OpenMeteo data when switching away
-            dispatch(clearPolygonData());
+        if (selectedDataSource === 'wrf' && nextDataSource.id === 'openmeteo') {
+            // Store current WRF settings before switching to OpenMeteo
+            setPreviousWRFSettings({
+                showGrid: showGrid,
+                showWindAnimation: showWindAnimation,
+                showStations: showStations
+            });
+            
+            // Set OpenMeteo-appropriate settings
+            dispatch(setShowGrid(false));
+            dispatch(setShowWindAnimation(false));
+            dispatch(setShowStations(false));
+        } else if (selectedDataSource === 'openmeteo' && nextDataSource.id === 'wrf') {
+            // Restore previous WRF settings when switching back
+            dispatch(setShowGrid(previousWRFSettings.showGrid));
+            dispatch(setShowWindAnimation(previousWRFSettings.showWindAnimation));
+            dispatch(setShowStations(previousWRFSettings.showStations));
         }
+        
+        // Update data source in Redux
+        dispatch(setSelectedDataSource(nextDataSource.id));
+        
+        // Stop any playing animation when switching
+        dispatch(setIsPlaying(false));
+        dispatch(setOpenMeteoIsPlaying(false));
     };
 
     const handleCityChange = (city) => {
@@ -183,13 +227,20 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         dispatch(clearZomatoWeatherData());
     };
 
-    const handlePlayPause = () => dispatch(setIsPlaying(!isPlaying));
+    const handlePlayPause = () => {
+        if (selectedDataSource === 'openmeteo') {
+            dispatch(setOpenMeteoIsPlaying(!openMeteoIsPlaying));
+        } else {
+            dispatch(setIsPlaying(!isPlaying));
+        }
+    };
 
     const handleReset = () => {
-        dispatch(setIsPlaying(false));
         if (selectedDataSource === 'openmeteo') {
+            dispatch(setOpenMeteoIsPlaying(false));
             dispatch(setOpenMeteoCurrentTimeIndex(0));
         } else {
+            dispatch(setIsPlaying(false));
             dispatch(setCurrentTimeIndex(0));
         }
     };
@@ -210,15 +261,19 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         let newOpacity = parseFloat(value);
 
         if (isNaN(newOpacity) || newOpacity < 0) {
-            newOpacity = 0.1;
+            newOpacity = 0;
         } else if (newOpacity > 1) {
             newOpacity = 1;
-        } else if (newOpacity < 0.05 && newOpacity > 0) {
-            newOpacity = 0.05;
         }
 
         newOpacity = Math.round(newOpacity * 100) / 100;
-        dispatch(setOpacity(newOpacity));
+        
+        // Apply opacity to the appropriate slice based on data source
+        if (selectedDataSource === 'openmeteo') {
+            dispatch(setOpenMeteoOpacity(newOpacity));
+        } else {
+            dispatch(setOpacity(newOpacity));
+        }
     };
 
     // Handle speed multiplier change based on data source
@@ -243,6 +298,8 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
     const handleEraserMode = () => {
         dispatch(setDrawingMode('view'));
         dispatch(clearPolygonData());
+        // Stop animation when clearing data
+        dispatch(setOpenMeteoIsPlaying(false));
     };
 
     // Handle Done button click - triggers data fetch
@@ -252,21 +309,30 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
         }
     };
 
+    // Handle point removal - if all points removed, stop animation
+    const handleRemovePolygonPoint = (index) => {
+        dispatch(removePolygonPoint(index));
+        // Check if this was the last point that would make polygon incomplete
+        if (polygonPoints.length <= 3) {
+            dispatch(setOpenMeteoIsPlaying(false));
+        }
+    };
+
     const handleModeChange = (mode) => {
         setSelectedMode(mode);
 
         if (mode === 'iith') {
             dispatch(setShowZWS(false));
-            dispatch(setShowGrid(previousIITHSettings.showGrid));
-            dispatch(setShowWindAnimation(previousIITHSettings.showWindAnimation));
-            dispatch(setShowStations(previousIITHSettings.showStations));
         } else if (mode === 'realtime') {
             if (selectedMode === 'iith') {
-                setPreviousIITHSettings({
-                    showGrid: showGrid,
-                    showWindAnimation: showWindAnimation,
-                    showStations: showStations
-                });
+                // Store current settings when leaving IITH mode
+                if (selectedDataSource === 'wrf') {
+                    setPreviousWRFSettings({
+                        showGrid: showGrid,
+                        showWindAnimation: showWindAnimation,
+                        showStations: showStations
+                    });
+                }
             }
             dispatch(setShowZWS(true));
             handleViewModeChange('map');
@@ -275,11 +341,14 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
             dispatch(setShowStations(false));
         } else if (mode === 'other') {
             if (selectedMode === 'iith') {
-                setPreviousIITHSettings({
-                    showGrid: showGrid,
-                    showWindAnimation: showWindAnimation,
-                    showStations: showStations
-                });
+                // Store current settings when leaving IITH mode
+                if (selectedDataSource === 'wrf') {
+                    setPreviousWRFSettings({
+                        showGrid: showGrid,
+                        showWindAnimation: showWindAnimation,
+                        showStations: showStations
+                    });
+                }
             }
             dispatch(setShowZWS(false));
             handleViewModeChange('map');
@@ -312,6 +381,11 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
 
     // Calculate current progress percentage
     const currentProgress = totalTimeIndices > 0 ? (getCurrentTimeIndex() / totalTimeIndices) * 100 : 0;
+
+    // Determine if animation controls should be shown
+    const shouldShowAnimationControls = selectedDataSource === 'openmeteo' 
+        ? openMeteoHasValidData 
+        : (batchInfo !== null);
 
     return (
         <div className={`absolute top-0 left-0 bg-white shadow-lg p-3 sm:p-4 z-40 
@@ -529,7 +603,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                                             Point {index + 1}: {point.lat.toFixed(4)}, {point.lng.toFixed(4)}
                                                         </span>
                                                         <button
-                                                            onClick={() => dispatch(removePolygonPoint(index))}
+                                                            onClick={() => handleRemovePolygonPoint(index)}
                                                             className="text-red-500 hover:text-red-700 ml-2">
                                                             <X className="w-3 h-3" />
                                                         </button>
@@ -632,32 +706,34 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                             {/* Opacity Slider */}
                             <div className="flex items-center gap-3">
                                 <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap min-w-16 sm:min-w-20">
-                                    Opacity: {Math.round(opacity * 100)}%
+                                    Opacity: {Math.round(getCurrentOpacity() * 100)}%
                                 </span>
                                 <input
                                     type="range"
-                                    min="0.05" max="1"
-                                    step="0.05" value={Math.max(0.05, Math.min(1, opacity))}
+                                    min="0" max="1"
+                                    step="0.05" value={getCurrentOpacity()}
                                     onChange={(e) => handleOpacityChange(parseFloat(e.target.value))}
                                     className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-gray-200 accent-blue-500" />
                             </div>
 
-                            {/* Animation Speed Slider */}
-                            <div className="flex items-center gap-3">
-                                <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap min-w-16 sm:min-w-20">
-                                    Speed: {speedMultiplier.toFixed(1)}x
-                                </span>
-                                <input
-                                    type="range"
-                                    min="0.5" max="5"
-                                    step="0.1" value={speedMultiplier}
-                                    onChange={(e) => handleSpeedMultiplierChange(parseFloat(e.target.value))}
-                                    className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-gray-200 accent-blue-500" />
-                            </div>
+                            {/* Animation Speed Slider - Only show when animation controls are available */}
+                            {shouldShowAnimationControls && (
+                                <div className="flex items-center gap-3">
+                                    <span className="text-xs sm:text-sm font-medium text-gray-700 whitespace-nowrap min-w-16 sm:min-w-20">
+                                        Speed: {speedMultiplier.toFixed(1)}x
+                                    </span>
+                                    <input
+                                        type="range"
+                                        min="0.5" max="5"
+                                        step="0.1" value={speedMultiplier}
+                                        onChange={(e) => handleSpeedMultiplierChange(parseFloat(e.target.value))}
+                                        className="w-full h-2 rounded-lg appearance-none cursor-pointer bg-gray-200 accent-blue-500" />
+                                </div>
+                            )}
                         </div>
 
-                        {/* Time Controls with integrated timestamp info */}
-                        {(batchInfo || (selectedDataSource === 'openmeteo' && openMeteoData)) && (
+                        {/* Time Controls with integrated timestamp info - Only show when appropriate */}
+                        {shouldShowAnimationControls && (
                             <div className="pt-3 sm:pt-4">
                                 <div className="flex flex-row items-start sm:items-center gap-3 mb-3 sm:mb-4">
                                     {/* Control Buttons */}
@@ -674,7 +750,7 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                         <button
                                             onClick={handlePlayPause}
                                             className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer shadow-sm">
-                                            {isPlaying ? <Pause className="w-3 h-3 sm:w-4 sm:h-4" /> : <Play className="w-3 h-3 sm:w-4 sm:h-4" />}
+                                            {getCurrentIsPlaying() ? <Pause className="w-3 h-3 sm:w-4 sm:h-4" /> : <Play className="w-3 h-3 sm:w-4 sm:h-4" />}
                                         </button>
 
                                         {/* Forward Button */}
@@ -787,8 +863,8 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                     </div>
                                 </div>
 
-                                {/* OpenMeteo Instructions */}
-                                {selectedDataSource === 'openmeteo' && polygonPoints.length === 0 && !openMeteoLoading && (
+                                {/* OpenMeteo Instructions - Only show when no valid data */}
+                                {selectedDataSource === 'openmeteo' && !openMeteoHasValidData && polygonPoints.length === 0 && !openMeteoLoading && (
                                     <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                                         <div className="text-sm text-amber-800">
                                             <div className="font-medium mb-1">Draw a polygon to get started:</div>
@@ -800,6 +876,20 @@ const ControlPanel = ({ viewMode, handleViewModeChange }) => {
                                         </div>
                                     </div>
                                 )}
+                            </div>
+                        )}
+
+                        {/* OpenMeteo Instructions when no animation controls */}
+                        {selectedDataSource === 'openmeteo' && !shouldShowAnimationControls && polygonPoints.length === 0 && !openMeteoLoading && (
+                            <div className="mb-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                                <div className="text-sm text-amber-800">
+                                    <div className="font-medium mb-1">Draw a polygon to get started:</div>
+                                    <div className="text-xs">
+                                        1. Click "Draw" button above<br/>
+                                        2. Click on map to add points (3-12 points)<br/>
+                                        3. Click "Done" to fetch weather data
+                                    </div>
+                                </div>
                             </div>
                         )}
                     </>

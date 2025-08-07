@@ -17,6 +17,9 @@ const initialState = {
   showGrids: false, showStations: false, selectedStationId: null,
 
   showDataTable: false,
+  
+  // Data source selection
+  selectedDataSource: 'openmeteo', // Default to openmeteo as mentioned
 };
 
 const uiSlice = createSlice({
@@ -54,6 +57,8 @@ const uiSlice = createSlice({
     // ==== GRID CONTROLS ====
     setShowGrid: (state, action) => { state.showGrids = action.payload },
 
+    // ==== DATA SOURCE CONTROLS ====
+    setSelectedDataSource: (state, action) => { state.selectedDataSource = action.payload },
 
     // ===== BULK ACTIONS =====
     resetUI: (state) => {
@@ -117,6 +122,9 @@ export const {
 
   // Panels
   setControlPanelExpanded, setShowDataTable,
+  
+  // Data Source
+  setSelectedDataSource,
 
   // Bulk
   resetUI, resetToDefaults, updateUIState, applyUIPreset,
@@ -138,6 +146,7 @@ export const selectShowStations = (state) => state.ui.showStations;
 export const selectSelectedStationId = (state) => state.ui.selectedStationId;
 export const selectShowGrid = (state) => state.ui.showGrids;
 export const selectShowDataTable = (state) => state.ui.showDataTable;
+export const selectSelectedDataSource = (state) => state.ui.selectedDataSource;
 
 // Compound selectors
 export const selectMapView = (state) => ({
